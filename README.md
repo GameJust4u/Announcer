@@ -1,37 +1,46 @@
-# BL9D LOLKA ANNOUNCER
+# BL9D LOLKA ANNOUNCER 💬
 
-Страничка с кнопками, которые отправляют объявления о ивентах в Discord через вебхук.
+Страничка с кнопками, которая отправляет анонсы ивентов в Discord-канал через вебхук.
 
-## Состав
+## Как это устроено
 
-- `send.html` — страничка (вебхука в ней нет, можно пушить спокойно)
-- `server.py` — сервер-посредник, хранит вебхук и проверяет пароль
-- `Procfile` — команда запуска для Railway
-- `requirements.txt` — зависимостей нет, файл нужен Railway
+- `send.html` — страничка с кнопками. Секретов не содержит.
+- `server.py` — сервер-посредник. Хранит вебхук (из переменных окружения) и
+  пересылает сообщения в Discord.
+- Пароль вводится один раз на устройство: сервер выдаёт куку на год,
+  дальше страничка открывается сразу с кнопками.
 
-## Переменные окружения
+## Переменные окружения (Railway → Variables)
 
-| Переменная | Что это | Пример |
+| Переменная | Что это | Обязательна |
 |---|---|---|
-| `DISCORD_WEBHOOK` | URL вебхука Discord (Настройки канала → Интеграции → Вебхуки) | `https://discord.com/api/webhooks/...` |
-| `PAGE_PASSWORD` | Пароль для странички (если пусто — проверка отключена) | `lolka123` |
-| `BOT_NAME` | Имя, от которого приходят сообщения | `BL9D BOT` |
+| `DISCORD_WEBHOOK` | URL вебхука Discord | да |
+| `PAGE_PASSWORD` | Пароль для доступа к страничке | нет (если пусто — доступ всем) |
+| `SESSION_SECRET` | Любая случайная строка для подписи куки | нет, но лучше задать |
+| `BOT_NAME` | Имя, от которого приходят сообщения | нет (по умолч. `BL9D BOT`) |
 
 ## Локальный запуск
 
 ```bash
-set DISCORD_WEBHOOK=твой_вебхук      # Windows (cmd)
-export DISCORD_WEBHOOK=твой_вебхук   # Linux/macOS
+# Windows (cmd):
+set DISCORD_WEBHOOK=твой_вебхук
+set PAGE_PASSWORD=мойпароль
 python server.py
+
+# Linux/macOS:
+DISCORD_WEBHOOK=твой_вебхук PAGE_PASSWORD=мойпароль python server.py
 ```
 
 Открыть: http://localhost:8080
 
 ## Деплой на Railway
 
-1. Залей репозиторий на GitHub.
-2. Railway → New Project → Deploy from GitHub repo → выбери репозиторий.
-3. Вкладка Variables: добавь `DISCORD_WEBHOOK`, `PAGE_PASSWORD`, `BOT_NAME`.
-4. Вкладка Networking → Generate Domain — получишь публичную ссылку.
+1. Залей файлы на GitHub.
+2. Railway → New Project → Deploy from GitHub repo.
+3. Variables: добавь `DISCORD_WEBHOOK`, `PAGE_PASSWORD`, `SESSION_SECRET`, `BOT_NAME`.
+4. Networking → Generate Domain — получишь публичную ссылку.
+5. Открой ссылку, введи пароль один раз — готово.
 
-Важно: не публикуй пароль и вебхук, ссылку на страничку давай только своим.
+⚠️ Если `SESSION_SECRET` не задан, он генерируется при каждом запуске, и после
+перезапуска пароль придётся ввести заново. Лучше задать что-то вроде
+`df8k2j9fsd7fk23`.

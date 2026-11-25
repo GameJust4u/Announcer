@@ -57,11 +57,11 @@
   .btn:active:not(:disabled) { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; cursor: wait; }
 
-  .btn-1 { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-  .btn-2 { background: linear-gradient(135deg, #27ae60, #1e8449); }
-  .btn-3 { background: linear-gradient(135deg, #8e44ad, #6c3483); }
+  .btn-1 { background: linear-gradient(135deg, #ff6b9d, #ff8fab); }
+  .btn-2 { background: linear-gradient(135deg, #a66bff, #8c5eff); }
+  .btn-3 { background: linear-gradient(135deg, #4ecdc4, #44b3aa); }
   .btn-4 { background: linear-gradient(135deg, #ffa62b, #ff7b00); }
-  .btn-5 { background: linear-gradient(135deg, #3498db, #2c81ba); }
+  .btn-5 { background: linear-gradient(135deg, #5c7cfa, #4c6ef5); }
 
   .custom-row { display: flex; gap: 10px; margin-top: 20px; }
   .custom-row input {
@@ -85,22 +85,6 @@
     cursor: pointer;
   }
 
-  .pass-row {
-    margin-top: 16px;
-  }
-  .pass-row input {
-    width: 100%;
-    padding: 14px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    font-size: 0.95rem;
-    outline: none;
-    text-align: center;
-  }
-  .pass-row input:focus { border-color: #a66bff; }
-
   .status {
     margin-top: 20px;
     min-height: 24px;
@@ -111,27 +95,62 @@
   .status.show { opacity: 1; }
   .status.ok { color: #4ecdc4; }
   .status.err { color: #ff6b9d; }
+
+  /* Экран входа */
+  .login {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 20, 0.85);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .login.show { display: flex; }
+  .login .card { max-width: 360px; }
+  .login input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0 0;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    text-align: center;
+  }
+  .login input:focus { border-color: #a66bff; }
+  .login button { margin-top: 12px; }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>BL9D LOLKA ANNOUNCER 💬</h1>
-  <p class="subtitle">выбери ивент — бот объявит в канал</p>
+<!-- Экран входа: показывается, только если пароль ещё не введён -->
+<div class="login" id="login">
+  <div class="card">
+    <h1>BL9D LOLKA ANNOUNCER</h1>
+    <p class="subtitle">введите код доступа — только один раз</p>
+    <input type="password" id="pwd" placeholder="Пароль" autocomplete="current-password">
+    <button class="btn btn-2" id="loginBtn">Войти</button>
+    <div class="status" id="loginStatus"></div>
+  </div>
+</div>
 
-  <button class="btn btn-1" data-text="@everyone РАСКОПКИ! Cобираемся на раскопочки!">Раскопки</button>
-  <button class="btn btn-2" data-text="@everyone 🗡️ ИВЕНТ: ЗАСАДА! Собираемся на засаду, тихо и слаженно!">Засада</button>
-  <button class="btn btn-3" data-text="@everyone 🏰 ИВЕНТ: ОСАДА! Все на осаду, не спим!">Осада</button>
-  <button class="btn btn-4" data-text="@everyone ⚔️ ИВЕНТ: ПАНДОРА А! Сбор группы на Пандору, первый состав!">Пандора А</button>
-  <button class="btn btn-5" data-text="@everyone ⚔️ ИВЕНТ: ПАНДОРА Б! Сбор группы на Пандору, второй состав!">Пандора Б</button>
+<div class="card" id="main">
+  <h1>BL9D LOLKA ANNOUNCER 💬</h1>
+  <p class="subtitle">выбери степень драматизма сообщения</p>
+
+  <button class="btn btn-1" data-text="⚔️ РАСКОПКИ ЧЕРЕЗ 5 МИНУТ — ВСЕ НА ПОЗИЦИИ ⚔️">Раскопки</button>
+  <button class="btn btn-2" data-text="🪤 ЗАСАДА ЧЕРЕЗ 5 МИНУТ — ЖДЁМ ВСЕХ 🪤">Засада</button>
+  <button class="btn btn-3" data-text="🏰 ОСАДА ЧЕРЕЗ 5 МИНУТ — ВСТАЁМ НА ЗАЩИТУ 🏰">Осада</button>
+  <button class="btn btn-4" data-text="💠 ПАНДОРА А ЧЕРЕЗ 5 МИНУТ — ГОТОВИМСЯ 💠">Пандора А</button>
+  <button class="btn btn-5" data-text="💠 ПАНДОРА Б ЧЕРЕЗ 5 МИНУТ — ГОТОВИМСЯ 💠">Пандора Б</button>
 
   <div class="custom-row">
     <input type="text" id="customText" placeholder="Своё сообщение..." maxlength="200">
     <button id="sendCustom">Отправить</button>
-  </div>
-
-  <div class="pass-row">
-    <input type="password" id="password" placeholder="Пароль" autocomplete="off">
   </div>
 
   <div class="status" id="status"></div>
@@ -139,38 +158,39 @@
 
 <script>
   const statusEl = document.getElementById('status');
-  const passEl = document.getElementById('password');
+  const loginEl = document.getElementById('login');
+  const loginStatusEl = document.getElementById('loginStatus');
 
-  function showStatus(text, ok) {
-    statusEl.textContent = text;
-    statusEl.className = 'status show ' + (ok ? 'ok' : 'err');
-    setTimeout(() => statusEl.classList.remove('show'), 4000);
+  function showStatus(el, text, ok) {
+    el.textContent = text;
+    el.className = 'status show ' + (ok ? 'ok' : 'err');
+    setTimeout(() => el.classList.remove('show'), 4000);
   }
 
   async function send(text) {
-    const password = passEl.value;
-    if (!password) { showStatus('Сначала введи пароль 🔑', false); return false; }
     try {
       const resp = await fetch('/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, password })
+        body: JSON.stringify({ text })
       });
+      if (resp.status === 401) {
+        // Кука кончилась или сбросилась — просим войти заново
+        loginEl.classList.add('show');
+        showStatus(statusEl, 'Нужен вход', false);
+        return;
+      }
       if (resp.ok) {
-        showStatus('Доставлено! ✅', true);
-        return true;
-      } else if (resp.status === 401) {
-        showStatus('Неверный пароль', false);
+        showStatus(statusEl, 'Доставлено! ✅', true);
       } else {
-        showStatus('Не получилось (ошибка ' + resp.status + ')', false);
+        showStatus(statusEl, 'Не получилось (ошибка ' + resp.status + ')', false);
       }
     } catch (e) {
-      showStatus('Сервер недоступен', false);
+      showStatus(statusEl, 'Сервер недоступен', false);
     }
-    return false;
   }
 
-  document.querySelectorAll('.btn').forEach(btn => {
+  document.querySelectorAll('#main .btn[data-text]').forEach(btn => {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
       await send(btn.dataset.text);
@@ -178,16 +198,51 @@
     });
   });
 
-  async function sendCustom() {
+  document.getElementById('sendCustom').addEventListener('click', () => {
     const input = document.getElementById('customText');
     const text = input.value.trim();
-    if (!text) { showStatus('Напиши что-нибудь сначала', false); return; }
-    if (await send(text)) input.value = '';
-  }
-  document.getElementById('sendCustom').addEventListener('click', sendCustom);
-  document.getElementById('customText').addEventListener('keydown', e => {
-    if (e.key === 'Enter') sendCustom();
+    if (!text) { showStatus(statusEl, 'Напиши что-нибудь сначала', false); return; }
+    send(text);
+    input.value = '';
   });
+
+  // --- вход ---
+  async function login() {
+    const pwd = document.getElementById('pwd');
+    const password = pwd.value;
+    if (!password) { showStatus(loginStatusEl, 'Введите пароль', false); return; }
+    try {
+      const resp = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      if (resp.ok) {
+        loginEl.classList.remove('show');
+        pwd.value = '';
+      } else {
+        showStatus(loginStatusEl, 'Неверный пароль', false);
+      }
+    } catch (e) {
+      showStatus(loginStatusEl, 'Сервер недоступен', false);
+    }
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('pwd').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+
+  // При открытии проверяем, авторизованы ли мы уже
+  (async () => {
+    try {
+      const resp = await fetch('/check');
+      const data = await resp.json();
+      if (!data.ok) loginEl.classList.add('show');
+    } catch (e) {
+      showStatus(statusEl, 'Сервер недоступен', false);
+    }
+  })();
 </script>
 
 </body>

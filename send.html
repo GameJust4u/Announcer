@@ -57,11 +57,11 @@
   .btn:active:not(:disabled) { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; cursor: wait; }
 
-  .btn-1 { background: linear-gradient(135deg, #ff6b9d, #ff8fab); }
-  .btn-2 { background: linear-gradient(135deg, #a66bff, #8c5eff); }
-  .btn-3 { background: linear-gradient(135deg, #4ecdc4, #44b3aa); }
-  .btn-4 { background: linear-gradient(135deg, #ffa62b, #ff7b00); }
-  .btn-5 { background: linear-gradient(135deg, #5c7cfa, #4c6ef5); }
+  .btn-raskopki { background: linear-gradient(135deg, #ff6b9d, #ff8fab); }
+  .btn-zasada  { background: linear-gradient(135deg, #a66bff, #8c5eff); }
+  .btn-osada   { background: linear-gradient(135deg, #4ecdc4, #44b3aa); }
+  .btn-pandora-a { background: linear-gradient(135deg, #ffa62b, #ff7b00); }
+  .btn-pandora-b { background: linear-gradient(135deg, #5b8cff, #3d6fe0); }
 
   .custom-row { display: flex; gap: 10px; margin-top: 20px; }
   .custom-row input {
@@ -85,6 +85,40 @@
     cursor: pointer;
   }
 
+  .target-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    align-items: center;
+  }
+  .target-row label { font-size: 0.85rem; color: #999; }
+  .target-row select {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: #16213e;
+    color: #eee;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .schedule-row { margin-top: 16px; }
+  .schedule-row label { display: block; font-size: 0.85rem; color: #999; margin-bottom: 6px; text-align: left; }
+  .schedule-row input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    color-scheme: dark;
+  }
+  .schedule-row input:focus { border-color: #ffa62b; }
+  .schedule-hint { font-size: 0.75rem; color: #777; margin-top: 6px; text-align: left; }
+
   .status {
     margin-top: 20px;
     min-height: 24px;
@@ -97,23 +131,31 @@
   .status.err { color: #ff6b9d; }
 
   /* Экран входа */
-  .login {
+  .login-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(10, 10, 20, 0.85);
-    backdrop-filter: blur(6px);
+    background: rgba(10, 10, 20, 0.9);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 10;
   }
-  .login.show { display: flex; }
-  .login .card { max-width: 360px; }
-  .login input {
+  .login-overlay.show { display: flex; }
+  .login-card {
+    background: #1c2340;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 36px;
+    width: 90%;
+    max-width: 380px;
+    text-align: center;
+  }
+  .login-card h2 { margin-bottom: 6px; font-size: 1.2rem; }
+  .login-card p { color: #999; font-size: 0.85rem; margin-bottom: 20px; }
+  .login-card input {
     width: 100%;
     padding: 14px;
-    margin: 10px 0 0;
-    border-radius: 14px;
+    border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.08);
     color: #fff;
@@ -121,128 +163,176 @@
     outline: none;
     text-align: center;
   }
-  .login input:focus { border-color: #a66bff; }
-  .login button { margin-top: 12px; }
+  .login-card input:focus { border-color: #a66bff; }
+  .login-card button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #a66bff, #8c5eff);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .login-error { color: #ff6b9d; font-size: 0.85rem; margin-top: 10px; min-height: 18px; }
+
+  .footer { margin-top: 20px; font-size: 0.75rem; color: #666; }
 </style>
 </head>
 <body>
 
-<!-- Экран входа: показывается, только если пароль ещё не введён -->
-<div class="login" id="login">
-  <div class="card">
-    <h1>BL9D LOLKA ANNOUNCER</h1>
-    <p class="subtitle">введите код доступа — только один раз</p>
-    <input type="password" id="pwd" placeholder="Пароль" autocomplete="current-password">
-    <button class="btn btn-2" id="loginBtn">Войти</button>
-    <div class="status" id="loginStatus"></div>
-  </div>
-</div>
-
-<div class="card" id="main">
-  <h1>BL9D LOLKA ANNOUNCER 💬</h1>
+<div class="card">
+  <h1>BL9D LOLKA ANNOUNCER</h1>
   <p class="subtitle">выбери степень драматизма сообщения</p>
 
-  <button class="btn btn-1" data-text="@everyone РАСКОПКИ — ЛОПАТЫ К БОЮ">Раскопки</button>
-  <button class="btn btn-2" data-text="@everyone 🪤 ЗАСАДА ЧЕРЕЗ 5 МИНУТ — ЖДЁМ ВСЕХ 🪤">Засада</button>
-  <button class="btn btn-3" data-text="@everyone 🏰 ОСАДА ЧЕРЕЗ 5 МИНУТ — ВСТАЁМ НА ЗАЩИТУ 🏰">Осада</button>
-  <button class="btn btn-4" data-text="@everyone ⚔️ ПАНДОРА А ЧЕРЕЗ 5 МИНУТ — ГОТОВИМСЯ ⚔️">Пандора А</button>
-  <button class="btn btn-5" data-text="@everyone ⚔️ ПАНДОРА Б ЧЕРЕЗ 5 МИНУТ — ГОТОВИМСЯ ⚔️">Пандора Б</button>
+  <button class="btn btn-raskopki" data-button="raskopki">Раскопки</button>
+  <button class="btn btn-zasada" data-button="zasada">Засада</button>
+  <button class="btn btn-osada" data-button="osada">Осада</button>
+  <button class="btn btn-pandora-a" data-button="pandora_a">Пандора А</button>
+  <button class="btn btn-pandora-b" data-button="pandora_b">Пандора Б</button>
 
   <div class="custom-row">
     <input type="text" id="customText" placeholder="Своё сообщение..." maxlength="200">
     <button id="sendCustom">Отправить</button>
   </div>
+  <div class="target-row">
+    <label>Куда:</label>
+    <select id="customTarget">
+      <option value="2">Канал 2 (основной)</option>
+      <option value="1">Канал 1 (раскопки)</option>
+    </select>
+  </div>
+
+  <div class="schedule-row">
+    <label for="scheduleAt">Отправить по расписанию (необязательно)</label>
+    <input type="datetime-local" id="scheduleAt">
+    <p class="schedule-hint">если выбрать дату и время — следующий клик по любой кнопке запланирует сообщение, а не отправит сразу</p>
+  </div>
 
   <div class="status" id="status"></div>
+
+  <p class="footer">⚠️ Страничка для своих: ссылку стоит не распространять.</p>
+</div>
+
+<!-- Экран входа -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>Вход 🔐</h2>
+    <p>пароль вводится один раз на этом устройстве</p>
+    <input type="password" id="passwordInput" placeholder="Пароль">
+    <button id="loginBtn">Войти</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
 </div>
 
 <script>
   const statusEl = document.getElementById('status');
-  const loginEl = document.getElementById('login');
-  const loginStatusEl = document.getElementById('loginStatus');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const scheduleInput = document.getElementById('scheduleAt');
 
-  function showStatus(el, text, ok) {
-    el.textContent = text;
-    el.className = 'status show ' + (ok ? 'ok' : 'err');
-    setTimeout(() => el.classList.remove('show'), 4000);
+  function showStatus(text, ok) {
+    statusEl.textContent = text;
+    statusEl.className = 'status show ' + (ok ? 'ok' : 'err');
+    setTimeout(() => statusEl.classList.remove('show'), 4000);
   }
 
-  async function send(text) {
+  function getScheduleEpoch() {
+    const v = scheduleInput.value;
+    if (!v) return null;
+    const ms = new Date(v).getTime();
+    if (!ms || ms <= Date.now()) return null;
+    return Math.floor(ms / 1000);
+  }
+
+  async function send(opts) {
+    const body = { text: opts.text };
+    if (opts.button) body.button = opts.button;
+    if (opts.target) body.target = opts.target;
+    const at = getScheduleEpoch();
+    if (at) body.send_at = at;
     try {
       const resp = await fetch('/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify(body)
       });
       if (resp.status === 401) {
-        // Кука кончилась или сбросилась — просим войти заново
-        loginEl.classList.add('show');
-        showStatus(statusEl, 'Нужен вход', false);
-        return;
+        loginOverlay.classList.add('show');
+        return false;
       }
       if (resp.ok) {
-        showStatus(statusEl, 'Доставлено! ✅', true);
-      } else {
-        showStatus(statusEl, 'Не получилось (ошибка ' + resp.status + ')', false);
+        const data = await resp.json();
+        if (data.scheduled) {
+          const d = new Date(at * 1000);
+          showStatus('Запланировано на ' + d.toLocaleString('ru-RU') + ' ⏰', true);
+        } else {
+          showStatus('Доставлено! ✅', true);
+        }
+        scheduleInput.value = '';
+        return true;
       }
+      showStatus('Не получилось (ошибка ' + resp.status + ')', false);
+      return false;
     } catch (e) {
-      showStatus(statusEl, 'Сервер недоступен', false);
+      showStatus('Сервер недоступен', false);
+      return false;
     }
   }
 
-  document.querySelectorAll('#main .btn[data-text]').forEach(btn => {
+  const BUTTON_TEXTS = {
+    raskopki: 'Раскопки 🪓',
+    zasada: 'Засада 🌙',
+    osada: 'Осада 🏰',
+    pandora_a: 'Пандора А 🎁',
+    pandora_b: 'Пандора Б 🎁'
+  };
+
+  document.querySelectorAll('.btn[data-button]').forEach(btn => {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      await send(btn.dataset.text);
+      await send({ button: btn.dataset.button, text: BUTTON_TEXTS[btn.dataset.button] });
       btn.disabled = false;
     });
   });
 
-  document.getElementById('sendCustom').addEventListener('click', () => {
+  async function sendCustom() {
     const input = document.getElementById('customText');
     const text = input.value.trim();
-    if (!text) { showStatus(statusEl, 'Напиши что-нибудь сначала', false); return; }
-    send(text);
-    input.value = '';
+    if (!text) { showStatus('Напиши что-нибудь сначала', false); return; }
+    const ok = await send({ text: text, target: document.getElementById('customTarget').value });
+    if (ok) input.value = '';
+  }
+  document.getElementById('sendCustom').addEventListener('click', sendCustom);
+  document.getElementById('customText').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendCustom();
   });
 
-  // --- вход ---
-  async function login() {
-    const pwd = document.getElementById('pwd');
-    const password = pwd.value;
-    if (!password) { showStatus(loginStatusEl, 'Введите пароль', false); return; }
+  // Вход
+  async function doLogin() {
+    const pass = document.getElementById('passwordInput').value;
+    const errEl = document.getElementById('loginError');
     try {
       const resp = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ password: pass })
       });
       if (resp.ok) {
-        loginEl.classList.remove('show');
-        pwd.value = '';
+        loginOverlay.classList.remove('show');
+        errEl.textContent = '';
+        showStatus('Готово, доступ открыт ✅', true);
       } else {
-        showStatus(loginStatusEl, 'Неверный пароль', false);
+        errEl.textContent = 'Неверный пароль';
       }
     } catch (e) {
-      showStatus(loginStatusEl, 'Сервер недоступен', false);
+      errEl.textContent = 'Сервер недоступен';
     }
   }
-
-  document.getElementById('loginBtn').addEventListener('click', login);
-  document.getElementById('pwd').addEventListener('keydown', e => {
-    if (e.key === 'Enter') login();
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('passwordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
   });
-
-  // При открытии проверяем, авторизованы ли мы уже
-  (async () => {
-    try {
-      const resp = await fetch('/check');
-      const data = await resp.json();
-      if (!data.ok) loginEl.classList.add('show');
-    } catch (e) {
-      showStatus(statusEl, 'Сервер недоступен', false);
-    }
-  })();
 </script>
 
 </body>

@@ -2,8 +2,15 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>BL9D LOLKA ANNOUNCER 💬</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon-192.png">
+<meta name="theme-color" content="#16213e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BL9D 💬">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,6 +22,7 @@
     font-family: 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
     color: #eee;
+    padding: 20px 0;
   }
 
   .card {
@@ -27,6 +35,7 @@
     width: 90%;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     text-align: center;
+    margin: auto;
   }
 
   h1 {
@@ -57,11 +66,11 @@
   .btn:active:not(:disabled) { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; cursor: wait; }
 
-  .btn-raskopki { background: linear-gradient(135deg, #ff6b9d, #ff8fab); }
-  .btn-zasada  { background: linear-gradient(135deg, #a66bff, #8c5eff); }
-  .btn-osada   { background: linear-gradient(135deg, #4ecdc4, #44b3aa); }
+  .btn-raskopki  { background: linear-gradient(135deg, #ff6b9d, #ff8fab); }
+  .btn-zasada    { background: linear-gradient(135deg, #a66bff, #8c5eff); }
+  .btn-osada     { background: linear-gradient(135deg, #4ecdc4, #44b3aa); }
   .btn-pandora-a { background: linear-gradient(135deg, #ffa62b, #ff7b00); }
-  .btn-pandora-b { background: linear-gradient(135deg, #5b8cff, #3d6fe0); }
+  .btn-pandora-b { background: linear-gradient(135deg, #5a8dff, #3a6edd); }
 
   .custom-row { display: flex; gap: 10px; margin-top: 20px; }
   .custom-row input {
@@ -73,6 +82,7 @@
     color: #fff;
     font-size: 0.95rem;
     outline: none;
+    min-width: 0;
   }
   .custom-row input:focus { border-color: #a66bff; }
   .custom-row button {
@@ -85,39 +95,22 @@
     cursor: pointer;
   }
 
-  .target-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    align-items: center;
-  }
-  .target-row label { font-size: 0.85rem; color: #999; }
-  .target-row select {
+  .options { display: flex; gap: 10px; margin-top: 14px; }
+  .options select, .options input {
     flex: 1;
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: #16213e;
-    color: #eee;
-    font-size: 0.9rem;
-    outline: none;
-  }
-
-  .schedule-row { margin-top: 16px; }
-  .schedule-row label { display: block; font-size: 0.85rem; color: #999; margin-bottom: 6px; text-align: left; }
-  .schedule-row input {
-    width: 100%;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.08);
     color: #fff;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     outline: none;
+    min-width: 0;
     color-scheme: dark;
   }
-  .schedule-row input:focus { border-color: #ffa62b; }
-  .schedule-hint { font-size: 0.75rem; color: #777; margin-top: 6px; text-align: left; }
+  .options select:focus, .options input:focus { border-color: #4ecdc4; }
+
+  .hint { margin-top: 6px; font-size: 0.75rem; color: #777; text-align: left; }
 
   .status {
     margin-top: 20px;
@@ -130,106 +123,105 @@
   .status.ok { color: #4ecdc4; }
   .status.err { color: #ff6b9d; }
 
+  .footer { margin-top: 20px; font-size: 0.75rem; color: #666; line-height: 1.5; }
+
   /* Экран входа */
-  .login-overlay {
+  .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(10, 10, 20, 0.9);
+    background: rgba(15, 20, 40, 0.92);
+    backdrop-filter: blur(6px);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    z-index: 100;
   }
-  .login-overlay.show { display: flex; }
-  .login-card {
-    background: #1c2340;
-    border: 1px solid rgba(255,255,255,0.1);
+  .overlay.show { display: flex; }
+  .login-box {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
     border-radius: 20px;
-    padding: 36px;
+    padding: 32px;
     width: 90%;
-    max-width: 380px;
+    max-width: 340px;
     text-align: center;
   }
-  .login-card h2 { margin-bottom: 6px; font-size: 1.2rem; }
-  .login-card p { color: #999; font-size: 0.85rem; margin-bottom: 20px; }
-  .login-card input {
+  .login-box h2 { font-size: 1.1rem; margin-bottom: 18px; color: #eee; }
+  .login-box input {
     width: 100%;
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.08);
     color: #fff;
     font-size: 1rem;
     outline: none;
     text-align: center;
+    margin-bottom: 14px;
   }
-  .login-card input:focus { border-color: #a66bff; }
-  .login-card button {
+  .login-box input:focus { border-color: #a66bff; }
+  .login-box button {
     width: 100%;
-    margin-top: 14px;
     padding: 14px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     background: linear-gradient(135deg, #a66bff, #8c5eff);
     color: #fff;
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
   }
-  .login-error { color: #ff6b9d; font-size: 0.85rem; margin-top: 10px; min-height: 18px; }
-
-  .footer { margin-top: 20px; font-size: 0.75rem; color: #666; }
+  .login-err { color: #ff6b9d; font-size: 0.85rem; min-height: 20px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>BL9D LOLKA ANNOUNCER</h1>
+  <h1>BL9D LOLKA ANNOUNCER 💬</h1>
   <p class="subtitle"></p>
 
-  <button class="btn btn-raskopki" data-button="raskopki">Раскопки</button>
-  <button class="btn btn-zasada" data-button="zasada">Засада</button>
-  <button class="btn btn-osada" data-button="osada">Осада</button>
-  <button class="btn btn-pandora-a" data-button="pandora_a">Пандора А</button>
-  <button class="btn btn-pandora-b" data-button="pandora_b">Пандора Б</button>
+  <button class="btn btn-raskopki"  data-id="raskopki">Раскопки</button>
+  <button class="btn btn-zasada"    data-id="zasada">Засада</button>
+  <button class="btn btn-osada"     data-id="osada">Осада</button>
+  <button class="btn btn-pandora-a" data-id="pandora_a">Пандора А</button>
+  <button class="btn btn-pandora-b" data-id="pandora_b">Пандора Б</button>
 
   <div class="custom-row">
     <input type="text" id="customText" placeholder="Своё сообщение..." maxlength="200">
     <button id="sendCustom">Отправить</button>
   </div>
-  <div class="target-row">
-    <label>Куда:</label>
-    <select id="customTarget">
-      <option value="2">Канал 2 (основной)</option>
-      <option value="1">Канал 1 (раскопки)</option>
-    </select>
-  </div>
 
-  <div class="schedule-row">
-    <label for="scheduleAt">Отправить по расписанию (необязательно)</label>
-    <input type="datetime-local" id="scheduleAt">
-    <p class="schedule-hint">если выбрать дату и время — следующий клик по любой кнопке запланирует сообщение, а не отправит сразу</p>
+  <div class="options">
+    <select id="channel" title="Куда отправить своё сообщение">
+      <option value="2">Канал 2 (как Засада/Осада)</option>
+      <option value="1">Канал 1 (как Раскопки)</option>
+    </select>
+    <input type="datetime-local" id="schedule" title="Отправить по расписанию (необязательно)">
   </div>
+  <p class="hint">Поле справа — для отложенной отправки. Пусто = отправить сразу.</p>
 
   <div class="status" id="status"></div>
 
-  <p class="footer">⚠️ Страничка для своих: ссылку стоит не распространять.</p>
+  <p class="footer">
+    📱 На телефоне: меню браузера → «Добавить на главный экран» —
+    и страничка будет открываться как приложение.
+  </p>
 </div>
 
-<!-- Экран входа -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-card">
-    <h2>Вход 🔐</h2>
-    <p>пароль вводится один раз на этом устройстве</p>
-    <input type="password" id="passwordInput" placeholder="Пароль">
+<div class="overlay" id="overlay">
+  <div class="login-box">
+    <h2>🔒 Вход в портал</h2>
+    <input type="password" id="pwd" placeholder="Пароль" autocomplete="current-password">
     <button id="loginBtn">Войти</button>
-    <div class="login-error" id="loginError"></div>
+    <div class="login-err" id="loginErr"></div>
   </div>
 </div>
 
 <script>
-  const statusEl = document.getElementById('status');
-  const loginOverlay = document.getElementById('loginOverlay');
-  const scheduleInput = document.getElementById('scheduleAt');
+  const statusEl  = document.getElementById('status');
+  const overlay   = document.getElementById('overlay');
+  const pwdInput  = document.getElementById('pwd');
+  const loginErr  = document.getElementById('loginErr');
 
   function showStatus(text, ok) {
     statusEl.textContent = text;
@@ -237,102 +229,87 @@
     setTimeout(() => statusEl.classList.remove('show'), 4000);
   }
 
-  function getScheduleEpoch() {
-    const v = scheduleInput.value;
-    if (!v) return null;
-    const ms = new Date(v).getTime();
-    if (!ms || ms <= Date.now()) return null;
-    return Math.floor(ms / 1000);
-  }
+  function showLogin() { overlay.classList.add('show'); pwdInput.focus(); }
+  function hideLogin() { overlay.classList.remove('show'); loginErr.textContent = ''; }
 
-  async function send(opts) {
-    const body = { text: opts.text };
-    if (opts.button) body.button = opts.button;
-    if (opts.target) body.target = opts.target;
-    const at = getScheduleEpoch();
-    if (at) body.send_at = at;
-    try {
-      const resp = await fetch('/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      if (resp.status === 401) {
-        loginOverlay.classList.add('show');
-        return false;
-      }
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.scheduled) {
-          const d = new Date(at * 1000);
-          showStatus('Запланировано на ' + d.toLocaleString('ru-RU') + ' ⏰', true);
-        } else {
-          showStatus('Доставлено! ✅', true);
-        }
-        scheduleInput.value = '';
-        return true;
-      }
-      showStatus('Не получилось (ошибка ' + resp.status + ')', false);
-      return false;
-    } catch (e) {
-      showStatus('Сервер недоступен', false);
-      return false;
-    }
-  }
-
-  const BUTTON_TEXTS = {
-    raskopki: '@everyone РАСКОПКИ — ЛОПАТЫ К БОЮ',
-    zasada: '@everyone Засада',
-    osada: '@everyone Осада',
-    pandora_a: '@everyone Пандора А',
-    pandora_b: '@everyone Пандора Б'
-  };
-
-  document.querySelectorAll('.btn[data-button]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      await send({ button: btn.dataset.button, text: BUTTON_TEXTS[btn.dataset.button] });
-      btn.disabled = false;
-    });
-  });
-
-  async function sendCustom() {
-    const input = document.getElementById('customText');
-    const text = input.value.trim();
-    if (!text) { showStatus('Напиши что-нибудь сначала', false); return; }
-    const ok = await send({ text: text, target: document.getElementById('customTarget').value });
-    if (ok) input.value = '';
-  }
-  document.getElementById('sendCustom').addEventListener('click', sendCustom);
-  document.getElementById('customText').addEventListener('keydown', e => {
-    if (e.key === 'Enter') sendCustom();
-  });
-
-  // Вход
-  async function doLogin() {
-    const pass = document.getElementById('passwordInput').value;
-    const errEl = document.getElementById('loginError');
+  async function login() {
+    const pwd = pwdInput.value;
+    if (!pwd) { loginErr.textContent = 'Введи пароль'; return; }
     try {
       const resp = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pass })
+        body: JSON.stringify({ password: pwd })
       });
-      if (resp.ok) {
-        loginOverlay.classList.remove('show');
-        errEl.textContent = '';
-        showStatus('Готово, доступ открыт ✅', true);
-      } else {
-        errEl.textContent = 'Неверный пароль';
-      }
+      if (resp.ok) { hideLogin(); pwdInput.value = ''; showStatus('Вход выполнен ✅', true); }
+      else { loginErr.textContent = 'Неверный пароль'; }
     } catch (e) {
-      errEl.textContent = 'Сервер недоступен';
+      loginErr.textContent = 'Сервер недоступен';
     }
   }
-  document.getElementById('loginBtn').addEventListener('click', doLogin);
-  document.getElementById('passwordInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
+
+  document.getElementById('loginBtn').addEventListener('click', login);
+  pwdInput.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+  async function send(text, buttonId, channel) {
+    const payload = { text };
+    if (buttonId) payload.button = buttonId;
+    if (channel)  payload.channel = channel;
+
+    const sched = document.getElementById('schedule').value;
+    if (sched) {
+      payload.schedule = new Date(sched).toISOString();
+      showStatus('Запланировано ⏰', true);
+    }
+
+    try {
+      const resp = await fetch('/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        if (!sched) showStatus('Доставлено! ✅', true);
+        if (!sched) document.getElementById('customText').value = '';
+      } else if (resp.status === 401) {
+        showLogin();
+      } else {
+        showStatus('Не получилось (ошибка ' + resp.status + ')', false);
+      }
+    } catch (e) {
+      showStatus('Сервер недоступен', false);
+    }
+  }
+
+  document.querySelectorAll('.btn[data-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await send('', btn.dataset.id);
+      btn.disabled = false;
+    });
   });
+
+  document.getElementById('sendCustom').addEventListener('click', () => {
+    const input = document.getElementById('customText');
+    const text = input.value.trim();
+    if (!text) { showStatus('Напиши что-нибудь сначала', false); return; }
+    const channel = document.getElementById('channel').value;
+    send(text, null, channel);
+    input.value = '';
+  });
+
+  document.getElementById('customText').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('sendCustom').click();
+  });
+
+  // Проверка входа при открытии
+  (async () => {
+    try {
+      const resp = await fetch('/auth-status');
+      const data = await resp.json();
+      if (!data.authed) showLogin();
+    } catch (e) { /* если сервер лег — покажется при отправке */ }
+  })();
 </script>
 
 </body>

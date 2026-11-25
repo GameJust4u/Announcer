@@ -1,24 +1,27 @@
+import hashlib
+import hmac
 import json
 import os
-import hmac
-import hashlib
 import threading
 import time
+from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
 
-# --- Секретная часть: всё из переменных окружения, в коде секретов нет ---
-WEBHOOK_1 = os.environ.get("DISCORD_WEBHOOK_1", "")   # канал для "Раскопки"
-WEBHOOK_2 = os.environ.get("DISCORD_WEBHOOK_2", "")   # канал для всего остального
+# ============ Конфигурация из переменных окружения ============
+# Railway -> Variables. Ничего секретного в коде нет.
+WEBHOOKS = {
+    "1": os.environ.get("DISCORD_WEBHOOK_1", ""),  # канал для «Раскопок»
+    "2": os.environ.get("DISCORD_WEBHOOK_2", ""),  # канал для остальных
+}
 BOT_NAME = os.environ.get("BOT_NAME", "BL9D BOT")
-PAGE_PASSWORD = os.environ.get("PAGE_PASSWORD", "")   # пустая = без пароля
-SESSION_SECRET = os.environ.get("SESSION_SECRET", "") or os.urandom(32).hex()
-PORT = int(os.environ.get("PORT", "8080"))
+PAGE_PASSWORD = os.environ.get("PAGE_PASSWORD", "")  # пусто = авторизация выключена
+SESSION_SECRET = os.environ.get("SESSION_SECRET") or os.urandom(32).hex()
+SESSION_TTL = 365 * 24 * 3600  # кука на год
+PORT = int(os.environ.get("PORT", 8080))
 
-WEBHOOKS = {"1": WEBHOOK_1, "2": WEBHOOK_2}
-
-# Какая кнопка в какой канал
+# Какая кнопка на какой вебхук летит. Перевесить кнопку = поменять цифру.
 BUTTON_WEBHOOKS = {
     "raskopki": "1",
     "zasada": "2",
@@ -27,85 +30,119 @@ BUTTON_WEBHOOKS = {
     "pandora_b": "2",
 }
 
+# Тексты кнопок живёт на сервере — страничка просто называет кнопку.
+BUTTON_TEXTS = {
+    "raskopki": "@everyone⛏РАСКОПКИ!",
+    "zasada":   "@everyone ЗАСАДА!",
+    "osada":    "@everyone 🏰 ОСАДА!",
+    "pandora_a": "🅰️ ПАНДОРА А",
+    "pandora_b": "🅱️ ПАНДОРА Б",
+}
+
+# ============ Статика ============
 with open("send.html", encoding="utf-8") as f:
     PAGE = f.read()
+with open("manifest.webmanifest", encoding="utf-8") as f:
+    MANIFEST = f.read()
+ICONS = {}
+for name in ("icon-192.png", "icon-512.png"):
+    with open(name, "rb") as f:
+        ICONS[name] = f.read()
 
-scheduled = []          # [{"at": epoch, "text": str, "target": "1"|"2"}]
-sched_lock = threading.Lock()
+# ============ Сессии ============
+def make_token():
+    ts = str(int(time.time()))
+    sig = hmac.new(SESSION_SECRET.encode(), ts.encode(), hashlib.sha256).hexdigest()
+    return f"{ts}.{sig}"
 
+def check_token(token):
+    try:
+        ts, sig = token.split(".", 1)
+    except ValueError:
+        return False
+    good = hmac.new(SESSION_SECRET.encode(), ts.encode(), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, good):
+        return False
+    try:
+        if time.time() - int(ts) > SESSION_TTL:
+            return False
+    except ValueError:
+        return False
+    return True
 
-def _sign(value):
-    return hmac.new(SESSION_SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
-
-
-def _check_cookie(handler):
-    cookie = handler.headers.get("Cookie", "")
-    token = ""
-    for part in cookie.split(";"):
-        if part.strip().startswith("auth="):
-            token = part.strip()[5:]
-    return _check_token(token)
-
-
-def _check_token(token):
-    if not PAGE_PASSWORD:
-        return True
-    return hmac.compare_digest(token or "", _sign(PAGE_PASSWORD))
-
-
-def send_to_webhook(target, text):
-    url = WEBHOOKS.get(target)
-    if not url:
-        raise RuntimeError("Вебхук для канала %s не настроен" % target)
-    payload = json.dumps({"content": text, "username": BOT_NAME}).encode("utf-8")
-    req = Request(url, data=payload, headers={"Content-Type": "application/json"})
+# ============ Discord ============
+def send_to_discord(webhook_url, text):
+    if not webhook_url:
+        raise RuntimeError("webhook не задан")
+    payload = json.dumps({"content": text[:2000], "username": BOT_NAME}).encode("utf-8")
+    req = Request(webhook_url, data=payload, headers={"Content-Type": "application/json"})
     urlopen(req, timeout=10)
 
+# ============ Отложенные сообщения ============
+# Живут в памяти: при перезапуске Railway расписание сбрасывается.
+def parse_schedule(value):
+    # клиент присылает ISO с Z (UTC)
+    dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.timestamp()
 
-def scheduler_loop():
-    while True:
-        now = time.time()
-        due = []
-        with sched_lock:
-            still = []
-            for item in scheduled:
-                if item["at"] <= now:
-                    due.append(item)
-                else:
-                    still.append(item)
-            scheduled[:] = still
-        for item in due:
-            try:
-                send_to_webhook(item["target"], item["text"])
-                print("Отправлено отложенное:", item["text"][:50])
-            except Exception as e:
-                print("Ошибка отложенной отправки:", e)
-        time.sleep(2)
+def schedule_message(delay, webhook_url, text):
+    def job():
+        try:
+            send_to_discord(webhook_url, text)
+            print(f"[ok] отложенное отправлено: {text[:40]}")
+        except Exception as e:
+            print(f"[fail] отложенное не ушло: {e}")
+    threading.Timer(delay, job).start()
 
-
+# ============ HTTP ============
 class Handler(BaseHTTPRequestHandler):
-    def _json(self, code, obj, extra_headers=None):
-        data = json.dumps(obj).encode("utf-8")
+    def _send(self, code, body, content_type="text/html; charset=utf-8", extra_headers=None):
+        if isinstance(body, str):
+            data = body.encode("utf-8")
+        else:
+            data = body
         self.send_response(code)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
-        for h, v in (extra_headers or []):
-            self.send_header(h, v)
+        for k, v in (extra_headers or {}).items():
+            self.send_header(k, v)
         self.end_headers()
         self.wfile.write(data)
+
+    def _json(self, code, obj, extra_headers=None):
+        self._send(code, json.dumps(obj), "application/json", extra_headers)
+
+    def _authorized(self):
+        # пароль не задан — авторизация выключена
+        if not PAGE_PASSWORD:
+            return True
+        raw = self.headers.get("Cookie", "")
+        for part in raw.split(";"):
+            part = part.strip()
+            if part.startswith("bl9d_session="):
+                return check_token(part.split("=", 1)[1])
+        return False
 
     def do_GET(self):
-        data = PAGE.encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+        if self.path == "/":
+            self._send(200, PAGE)
+        elif self.path == "/manifest.webmanifest":
+            self._send(200, MANIFEST, "application/manifest+json")
+        elif self.path == "/icon-192.png":
+            self._send(200, ICONS["icon-192.png"], "image/png")
+        elif self.path == "/icon-512.png":
+            self._send(200, ICONS["icon-512.png"], "image/png")
+        elif self.path == "/auth-status":
+            self._json(200, {"authed": self._authorized()})
+        else:
+            self._json(404, {"error": "not found"})
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
         try:
-            body = json.loads(self.rfile.read(length).decode("utf-8"))
+            data = json.loads(self.rfile.read(length).decode("utf-8"))
         except Exception:
             self._json(400, {"error": "bad request"})
             return
@@ -114,67 +151,80 @@ class Handler(BaseHTTPRequestHandler):
             if not PAGE_PASSWORD:
                 self._json(200, {"ok": True})
                 return
-            if hmac.compare_digest(str(body.get("password", "")), PAGE_PASSWORD):
-                token = _sign(PAGE_PASSWORD)
-                self._json(200, {"ok": True}, extra_headers=[
-                    ("Set-Cookie", "auth=%s; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax" % token)
-                ])
+            if data.get("password") == PAGE_PASSWORD:
+                token = make_token()
+                cookie = (
+                    f"bl9d_session={token}; Max-Age={SESSION_TTL}; Path=/; "
+                    "HttpOnly; Secure; SameSite=Lax"
+                )
+                self._json(200, {"ok": True}, {"Set-Cookie": cookie})
             else:
                 self._json(401, {"error": "wrong password"})
             return
 
-        if self.path != "/send":
-            self._json(404, {"error": "not found"})
-            return
+        if self.path == "/send":
+            if not self._authorized():
+                self._json(401, {"error": "unauthorized"})
+                return
 
-        if not _check_cookie(self):
-            self._json(401, {"error": "unauthorized"})
-            return
+            text = str(data.get("text", "")).strip()[:2000]
+            button_id = data.get("button")
 
-        text = str(body.get("text", "")).strip()[:2000]
-        if not text:
-            self._json(400, {"error": "empty"})
-            return
+            # для кнопок текст определяет сервер
+            if button_id and button_id in BUTTON_TEXTS:
+                text = BUTTON_TEXTS[button_id]
+            if not text:
+                self._json(400, {"error": "empty"})
+                return
 
-        button = body.get("button")
-        if button in BUTTON_WEBHOOKS:
-            target = BUTTON_WEBHOOKS[button]
-        else:
-            target = body.get("target") if body.get("target") in WEBHOOKS else "2"
+            # канал: по кнопке или из явного выбора (для своих сообщений)
+            if button_id and button_id in BUTTON_WEBHOOKS:
+                channel = BUTTON_WEBHOOKS[button_id]
+            else:
+                channel = data.get("channel") if data.get("channel") in WEBHOOKS else "2"
+            webhook_url = WEBHOOKS[channel]
 
-        send_at = body.get("send_at")
-        if send_at:
+            # расписание
+            schedule = data.get("schedule")
+            if schedule:
+                try:
+                    ts = parse_schedule(schedule)
+                    delay = ts - time.time()
+                    if delay < -5:
+                        self._json(400, {"error": "time in the past"})
+                        return
+                    if delay > 0:
+                        schedule_message(delay, webhook_url, text)
+                    else:
+                        send_to_discord(webhook_url, text)
+                    self._json(200, {"ok": True, "scheduled": True})
+                except (ValueError, TypeError):
+                    self._json(400, {"error": "bad schedule"})
+                except (HTTPError, URLError, RuntimeError) as e:
+                    print("Discord error:", e)
+                    self._json(502, {"error": "webhook failed"})
+                return
+
+            # обычная отправка
             try:
-                at = float(send_at)
-            except (TypeError, ValueError):
-                self._json(400, {"error": "bad send_at"})
+                send_to_discord(webhook_url, text)
+            except HTTPError as e:
+                print("Discord error:", e.code, e.read().decode(errors="ignore"))
+                self._json(502, {"error": "webhook failed"})
                 return
-            if at <= time.time():
-                self._json(400, {"error": "time in the past"})
+            except (URLError, RuntimeError) as e:
+                print("Network error:", e)
+                self._json(502, {"error": "webhook failed"})
                 return
-            if at > time.time() + 365 * 24 * 3600:
-                self._json(400, {"error": "too far ahead"})
-                return
-            with sched_lock:
-                scheduled.append({"at": at, "text": text, "target": target})
-            self._json(200, {"ok": True, "scheduled": True})
+            self._json(200, {"ok": True})
             return
 
-        try:
-            send_to_webhook(target, text)
-        except HTTPError as e:
-            print("Discord error:", e.code, e.read().decode(errors="ignore"))
-            self._json(502, {"error": "webhook failed"})
-            return
-        except (URLError, RuntimeError) as e:
-            print("Ошибка отправки:", e)
-            self._json(502, {"error": "send failed"})
-            return
+        self._json(404, {"error": "not found"})
 
-        self._json(200, {"ok": True, "scheduled": False})
+    def log_message(self, fmt, *args):
+        print(self.address_string(), fmt % args)
 
 
 if __name__ == "__main__":
-    threading.Thread(target=scheduler_loop, daemon=True).start()
-    print("Запущено на порту %d" % PORT)
+    print(f"BL9D LOLKA ANNOUNCER запущен на порту {PORT}")
     HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

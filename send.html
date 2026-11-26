@@ -1,316 +1,314 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>BL9D LOLKA ANNOUNCER 💬</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BL9D 💬</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icon-192.png">
-<meta name="theme-color" content="#16213e">
+<meta name="theme-color" content="#1c1230">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BL9D 💬">
+<meta name="apple-mobile-web-app-title" content="BL9D">
 <link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" href="/icon-192.png">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-    color: #eee;
-    padding: 20px 0;
+    background: linear-gradient(160deg, #1c1230 0%, #2a1a4a 55%, #1a1030 100%);
+    color: #f0eaff;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 16px 40px;
   }
-
-  .card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    padding: 40px;
-    max-width: 460px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    text-align: center;
-    margin: auto;
+  h1 { font-size: 1.6em; margin-bottom: 6px; letter-spacing: .5px; }
+  .who { color: #b9a8e6; font-size: .85em; margin-bottom: 20px; }
+  .topbar { display: flex; gap: 10px; margin-bottom: 18px; }
+  .topbar button {
+    background: rgba(255,255,255,.08); color: #d8c8ff;
+    border: 1px solid rgba(255,255,255,.18); border-radius: 20px;
+    padding: 7px 16px; font-size: .85em; cursor: pointer;
   }
-
-  h1 {
-    font-size: 1.5rem;
-    margin-bottom: 8px;
-    background: linear-gradient(90deg, #ff6b9d, #a66bff, #4ecdc4);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .topbar button:hover { background: rgba(255,255,255,.16); }
+  .panel {
+    width: 100%; max-width: 420px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 18px; padding: 18px; margin-bottom: 16px;
   }
-
-  .subtitle { color: #999; font-size: 0.9rem; margin-bottom: 28px; }
-
+  .panel h2 { font-size: .95em; color: #c9b6f5; margin-bottom: 12px; }
   .btn {
-    display: block;
-    width: 100%;
-    padding: 15px 20px;
-    margin: 12px 0;
-    border: none;
-    border-radius: 14px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    display: block; width: 100%;
+    border: none; border-radius: 14px; cursor: pointer;
+    font-size: 1.05em; font-weight: 600; padding: 15px;
+    margin-bottom: 10px; color: #fff;
+    transition: opacity .25s, transform .1s;
   }
-  .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
-  .btn:active:not(:disabled) { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.5; cursor: wait; }
-
-  .btn-raskopki  { background: linear-gradient(135deg, #ff6b9d, #ff8fab); }
-  .btn-zasada    { background: linear-gradient(135deg, #a66bff, #8c5eff); }
-  .btn-osada     { background: linear-gradient(135deg, #4ecdc4, #44b3aa); }
-  .btn-pandora-a { background: linear-gradient(135deg, #ffa62b, #ff7b00); }
-  .btn-pandora-b { background: linear-gradient(135deg, #5a8dff, #3a6edd); }
-
-  .custom-row { display: flex; gap: 10px; margin-top: 20px; }
-  .custom-row input {
-    flex: 1;
-    padding: 14px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    font-size: 0.95rem;
-    outline: none;
-    min-width: 0;
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .38; cursor: not-allowed; }
+  .b-exc { background: linear-gradient(135deg, #7b2ff7, #b249f8); }
+  .b-amb { background: linear-gradient(135deg, #0e8f7e, #14b8a6); }
+  .b-sie { background: linear-gradient(135deg, #c02666, #ec4899); }
+  .b-pa  { background: linear-gradient(135deg, #b45309, #f59e0b); }
+  .b-pb  { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+  .lock { font-size: .75em; opacity: .7; font-weight: 400; }
+  textarea, input[type="datetime-local"], select {
+    width: 100%; background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.15); border-radius: 10px;
+    color: #f0eaff; padding: 10px 12px; font-size: .95em;
+    font-family: inherit; margin-bottom: 10px; resize: vertical;
   }
-  .custom-row input:focus { border-color: #a66bff; }
-  .custom-row button {
-    padding: 14px 22px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #4ecdc4, #44b3aa);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
+  textarea:disabled, select:disabled, input:disabled { opacity: .4; }
+  .row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .row label { font-size: .85em; color: #b9a8e6; white-space: nowrap; }
+  .row select { margin: 0; }
+  .send-btn {
+    background: linear-gradient(135deg, #7b2ff7, #2dd4bf);
+    border: none; border-radius: 12px; color: #fff;
+    font-size: 1em; font-weight: 600; padding: 13px; width: 100%;
+    cursor: pointer; transition: opacity .25s;
   }
-
-  .options { display: flex; gap: 10px; margin-top: 14px; }
-  .options select, .options input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    font-size: 0.9rem;
-    outline: none;
-    min-width: 0;
-    color-scheme: dark;
-  }
-  .options select:focus, .options input:focus { border-color: #4ecdc4; }
-
-  .hint { margin-top: 6px; font-size: 0.75rem; color: #777; text-align: left; }
-
-  .status {
-    margin-top: 20px;
-    min-height: 24px;
-    font-size: 0.9rem;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .status.show { opacity: 1; }
-  .status.ok { color: #4ecdc4; }
-  .status.err { color: #ff6b9d; }
-
-  .footer { margin-top: 20px; font-size: 0.75rem; color: #666; line-height: 1.5; }
-
-  /* Экран входа */
+  .send-btn:disabled { opacity: .38; cursor: not-allowed; }
+  .status { min-height: 1.3em; font-size: .85em; margin-top: 10px; text-align: center; }
+  .status.ok { color: #6ee7b7; }
+  .status.err { color: #fca5a5; }
+  .status.warn { color: #fcd34d; }
+  .cooldown-note { font-size: .8em; color: #fcd34d; margin-top: 6px; text-align: center; }
+  /* Вход */
   .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 20, 40, 0.92);
-    backdrop-filter: blur(6px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
+    position: fixed; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(10, 5, 25, .8); z-index: 10; padding: 16px;
   }
-  .overlay.show { display: flex; }
+  .overlay.open { display: flex; }
   .login-box {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 32px;
-    width: 90%;
-    max-width: 340px;
-    text-align: center;
+    background: #241640; border: 1px solid rgba(255,255,255,.15);
+    border-radius: 18px; padding: 22px; width: 100%; max-width: 340px;
   }
-  .login-box h2 { font-size: 1.1rem; margin-bottom: 18px; color: #eee; }
+  .login-box h2 { margin-bottom: 12px; font-size: 1.1em; }
   .login-box input {
-    width: 100%;
-    padding: 14px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    font-size: 1rem;
-    outline: none;
-    text-align: center;
-    margin-bottom: 14px;
+    width: 100%; background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 10px;
+    color: #f0eaff; padding: 11px 12px; font-size: 1em; margin-bottom: 12px;
   }
-  .login-box input:focus { border-color: #a66bff; }
-  .login-box button {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #a66bff, #8c5eff);
-    color: #fff;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  .login-err { color: #ff6b9d; font-size: 0.85rem; min-height: 20px; margin-top: 10px; }
+  .login-box .send-btn { margin-bottom: 8px; }
+  .login-box .err { color: #fca5a5; font-size: .85em; min-height: 1.2em; }
+  .hint { font-size: .78em; color: #8f7cc0; text-align: center; margin-top: 22px; line-height: 1.5; }
 </style>
 </head>
 <body>
+  <h1>BL9D 💬</h1>
+  <div class="who" id="who"></div>
 
-<div class="card">
-  <h1>BL9D LOLKA ANNOUNCER 💬</h1>
-  <p class="subtitle"></p>
-
-  <button class="btn btn-raskopki"  data-id="raskopki">Раскопки</button>
-  <button class="btn btn-zasada"    data-id="zasada">Засада</button>
-  <button class="btn btn-osada"     data-id="osada">Осада</button>
-  <button class="btn btn-pandora-a" data-id="pandora_a">Пандора А</button>
-  <button class="btn btn-pandora-b" data-id="pandora_b">Пандора Б</button>
-
-  <div class="custom-row">
-    <input type="text" id="customText" placeholder="Своё сообщение..." maxlength="200">
-    <button id="sendCustom">Отправить</button>
+  <div class="topbar">
+    <button id="loginBtn" style="display:none">Вход 🔑</button>
+    <button id="logoutBtn" style="display:none">Выйти</button>
   </div>
 
-  <div class="options">
-    <select id="channel" title="Куда отправить своё сообщение">
-      <option value="2">Канал 2 (как Засада/Осада)</option>
-      <option value="1">Канал 1 (как Раскопки)</option>
-    </select>
-    <input type="datetime-local" id="schedule" title="Отправить по расписанию (необязательно)">
+  <div class="panel">
+    <h2>Быстрые события</h2>
+    <button class="btn b-exc" id="btn-excavations">⛏️ Раскопки</button>
+    <button class="btn b-amb" id="btn-ambush">🏹 Засада <span class="lock">🔒</span></button>
+    <button class="btn b-sie" id="btn-siege">🏰 Осада <span class="lock">🔒</span></button>
+    <button class="btn b-pa"  id="btn-pandora_a">📦 Пандора А <span class="lock">🔒</span></button>
+    <button class="btn b-pb"  id="btn-pandora_b">📦 Пандора Б <span class="lock">🔒</span></button>
   </div>
-  <p class="hint">Поле справа — для отложенной отправки. Пусто = отправить сразу.</p>
+
+  <div class="panel">
+    <h2>Своё сообщение</h2>
+    <textarea id="msg" rows="3" placeholder="Текст сообщения…"></textarea>
+    <div class="row">
+      <label for="channel">Куда:</label>
+      <select id="channel">
+        <option value="2">Канал Объявления</option>
+        <option value="1">Канал Раскопки</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="sched">По расписанию:</label>
+      <input type="datetime-local" id="sched">
+    </div>
+    <button class="send-btn" id="sendCustom">Отправить</button>
+  </div>
 
   <div class="status" id="status"></div>
+  <div class="cooldown-note" id="cooldownNote"></div>
 
-  <p class="footer">
-    📱 На телефоне: меню браузера → «Добавить на главный экран» —
-    и страничка будет открываться как приложение.
-  </p>
-</div>
-
-<div class="overlay" id="overlay">
-  <div class="login-box">
-    <h2>🔒 Вход в портал</h2>
-    <input type="password" id="pwd" placeholder="Пароль" autocomplete="current-password">
-    <button id="loginBtn">Войти</button>
-    <div class="login-err" id="loginErr"></div>
+  <div class="hint">
+    📱 На телефоне: меню браузера → «Добавить на главный экран» —<br>
+    и страничка станет приложением с иконкой.
   </div>
-</div>
+
+  <!-- Экран входа -->
+  <div class="overlay" id="loginOverlay">
+    <div class="login-box">
+      <h2>Вход</h2>
+      <input type="password" id="pw" placeholder="Пароль" autocomplete="current-password">
+      <button class="send-btn" id="doLogin">Войти</button>
+      <button class="send-btn" style="background:rgba(255,255,255,.12)" id="cancelLogin">Позже</button>
+      <div class="err" id="loginErr"></div>
+    </div>
+  </div>
 
 <script>
-  const statusEl  = document.getElementById('status');
-  const overlay   = document.getElementById('overlay');
-  const pwdInput  = document.getElementById('pwd');
-  const loginErr  = document.getElementById('loginErr');
+(function () {
+  var authed = false;
+  var cooldownEnd = 0, tickTimer = null;
 
-  function showStatus(text, ok) {
-    statusEl.textContent = text;
-    statusEl.className = 'status show ' + (ok ? 'ok' : 'err');
-    setTimeout(() => statusEl.classList.remove('show'), 4000);
+  var statusEl = document.getElementById("status");
+  var cdNote = document.getElementById("cooldownNote");
+  var loginOverlay = document.getElementById("loginOverlay");
+  var pwInput = document.getElementById("pw");
+  var loginErr = document.getElementById("loginErr");
+
+  function setStatus(text, cls) {
+    statusEl.textContent = text || "";
+    statusEl.className = "status" + (cls ? " " + cls : "");
   }
 
-  function showLogin() { overlay.classList.add('show'); pwdInput.focus(); }
-  function hideLogin() { overlay.classList.remove('show'); loginErr.textContent = ''; }
-
-  async function login() {
-    const pwd = pwdInput.value;
-    if (!pwd) { loginErr.textContent = 'Введи пароль'; return; }
-    try {
-      const resp = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pwd })
-      });
-      if (resp.ok) { hideLogin(); pwdInput.value = ''; showStatus('Вход выполнен ✅', true); }
-      else { loginErr.textContent = 'Неверный пароль'; }
-    } catch (e) {
-      loginErr.textContent = 'Сервер недоступен';
+  function applyAuth() {
+    document.getElementById("loginBtn").style.display = authed ? "none" : "";
+    document.getElementById("logoutBtn").style.display = authed ? "" : "none";
+    var locked = ["btn-ambush", "btn-siege", "btn-pandora_a", "btn-pandora_b"];
+    locked.forEach(function (id) {
+      document.getElementById(id).disabled = !authed;
+    });
+    document.getElementById("msg").disabled = !authed;
+    document.getElementById("channel").disabled = !authed;
+    document.getElementById("sched").disabled = !authed;
+    document.getElementById("sendCustom").disabled = !authed;
+    if (!authed) {
+      document.getElementById("who").textContent = "гостевой режим: доступна только Раскопки";
+    } else {
+      document.getElementById("who").textContent = "полный доступ";
     }
   }
 
-  document.getElementById('loginBtn').addEventListener('click', login);
-  pwdInput.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
-
-  async function send(text, buttonId, channel) {
-    const payload = { text };
-    if (buttonId) payload.button = buttonId;
-    if (channel)  payload.channel = channel;
-
-    const sched = document.getElementById('schedule').value;
-    if (sched) {
-      payload.schedule = new Date(sched).toISOString();
-      showStatus('Запланировано ⏰', true);
+  function refreshCooldownUI() {
+    var now = Date.now();
+    var left = Math.ceil((cooldownEnd - now) / 1000);
+    var busy = left > 0;
+    document.getElementById("btn-excavations").disabled = busy;
+    ["btn-ambush","btn-siege","btn-pandora_a","btn-pandora_b"].forEach(function(id){
+      document.getElementById(id).disabled = busy || !authed;
+    });
+    document.getElementById("sendCustom").disabled = busy || !authed;
+    cdNote.textContent = busy ? "Пауза от спама: " + left + " с" : "";
+    if (busy && !tickTimer) {
+      tickTimer = setInterval(function () {
+        var l = Math.ceil((cooldownEnd - Date.now()) / 1000);
+        if (l <= 0) {
+          clearInterval(tickTimer); tickTimer = null; cooldownEnd = 0;
+          cdNote.textContent = ""; applyAuth();
+        } else {
+          cdNote.textContent = "Пауза от спама: " + l + " с";
+        }
+      }, 500);
     }
+  }
 
-    try {
-      const resp = await fetch('/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (resp.ok) {
-        if (!sched) showStatus('Доставлено! ✅', true);
-        if (!sched) document.getElementById('customText').value = '';
-      } else if (resp.status === 401) {
-        showLogin();
+  function showErr(error, wait) {
+    if (wait) { cooldownEnd = Date.now() + wait * 1000; refreshCooldownUI(); }
+    setStatus(error || "Ошибка", "err");
+  }
+
+  function doSend(payload, onOk) {
+    if (cooldownEnd > Date.now()) return;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/send");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = function () {
+      var r = {};
+      try { r = JSON.parse(xhr.responseText); } catch (e) {}
+      if (xhr.status === 200) {
+        setStatus(r.scheduled ? ("Запланировано на " + r.scheduled) : "Отправлено ✅", r.scheduled ? "warn" : "ok");
+        if (r.scheduled) { /* таймер */ } else { cooldownEnd = Date.now() + 15000; refreshCooldownUI(); }
+        if (onOk) onOk();
+      } else if (xhr.status === 401) {
+        authed = false; applyAuth(); openLogin();
+        setStatus("Нужен вход", "err");
+      } else if (xhr.status === 429) {
+        showErr("", r.wait || 15);
+      } else if (xhr.status === 409) {
+        setStatus(r.error || "уже запланировано", "warn");
       } else {
-        showStatus('Не получилось (ошибка ' + resp.status + ')', false);
+        setStatus(r.error || ("Ошибка " + xhr.status), "err");
       }
-    } catch (e) {
-      showStatus('Сервер недоступен', false);
-    }
+    };
+    xhr.onerror = function () { setStatus("Нет связи с сервером", "err"); };
+    xhr.send(JSON.stringify(payload));
   }
 
-  document.querySelectorAll('.btn[data-id]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      await send('', btn.dataset.id);
-      btn.disabled = false;
+  function scheduleValue() {
+    var v = document.getElementById("sched").value;
+    if (!v) return "";
+    // переводим локальное время в ISO со смещением пояса устройства
+    var d = new Date(v);
+    var off = -d.getTimezoneOffset();
+    var sign = off >= 0 ? "+" : "-";
+    var abs = Math.abs(off);
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    return v + sign + pad(Math.floor(abs / 60)) + ":" + pad(abs % 60);
+  }
+
+  // Быстрые кнопки
+  ["excavations","ambush","siege","pandora_a","pandora_b"].forEach(function (name) {
+    document.getElementById("btn-" + name).addEventListener("click", function () {
+      var sched = authed ? scheduleValue() : scheduleValue();
+      doSend({ button: name, scheduled: sched });
     });
   });
 
-  document.getElementById('sendCustom').addEventListener('click', () => {
-    const input = document.getElementById('customText');
-    const text = input.value.trim();
-    if (!text) { showStatus('Напиши что-нибудь сначала', false); return; }
-    const channel = document.getElementById('channel').value;
-    send(text, null, channel);
-    input.value = '';
+  // Своё сообщение
+  document.getElementById("sendCustom").addEventListener("click", function () {
+    var t = document.getElementById("msg").value.trim();
+    if (!t) { setStatus("Сначала напиши текст", "err"); return; }
+    doSend({
+      button: "custom",
+      text: t,
+      channel: parseInt(document.getElementById("channel").value, 10),
+      scheduled: scheduleValue()
+    }, function () { document.getElementById("msg").value = ""; document.getElementById("sched").value = ""; });
   });
 
-  document.getElementById('customText').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('sendCustom').click();
+  // Вход / выход
+  function openLogin() { loginOverlay.classList.add("open"); loginErr.textContent = ""; pwInput.value = ""; pwInput.focus(); }
+  document.getElementById("loginBtn").addEventListener("click", openLogin);
+  document.getElementById("cancelLogin").addEventListener("click", function () { loginOverlay.classList.remove("open"); });
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    document.cookie = "session=; Path=/; Max-Age=0";
+    authed = false; applyAuth(); setStatus("Вы вышли. Гостевой режим: только Раскопки", "warn");
   });
+  document.getElementById("doLogin").addEventListener("click", tryLogin);
+  pwInput.addEventListener("keydown", function (e) { if (e.key === "Enter") tryLogin(); });
 
-  // Проверка входа при открытии
-  (async () => {
-    try {
-      const resp = await fetch('/auth-status');
-      const data = await resp.json();
-      if (!data.authed) showLogin();
-    } catch (e) { /* если сервер лег — покажется при отправке */ }
-  })();
+  function tryLogin() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/login");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        loginOverlay.classList.remove("open");
+        authed = true; applyAuth();
+        setStatus("Вход выполнен ✅", "ok");
+      } else {
+        loginErr.textContent = "Неверный пароль";
+      }
+    };
+    xhr.onerror = function () { loginErr.textContent = "Нет связи с сервером"; };
+    xhr.send(JSON.stringify({ password: pwInput.value }));
+  }
+
+  // Старт
+  var a = new XMLHttpRequest();
+  a.open("GET", "/api/auth");
+  a.onload = function () {
+    try { var r = JSON.parse(a.responseText); authed = !!r.authed; } catch (e) {}
+    applyAuth();
+    if (!authed) setStatus("Гостевой режим: активна только Раскопки. Для остального — вход 🔑", "warn");
+  };
+  a.send();
+})();
 </script>
-
 </body>
 </html>

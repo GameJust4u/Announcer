@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, json, time, hmac, hashlib, threading, uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import request as urlreq
 from urllib.parse import urlparse
@@ -18,10 +18,10 @@ COOLDOWN = 15  # секунд паузы между отправками одн�
 # Тексты кнопок живут здесь — менять их нужно только тут
 BUTTON_TEXTS = {
     "excavations": "@everyone ⛏️ Раскопки",
-    "ambush":      "@everyone  Засада",
-    "siege":       "@everyone  Осада",
-    "pandora_a":   "@everyone  Пандора А",
-    "pandora_b":   "@everyone  Пандора Б",
+    "ambush":      "@everyone 🏹 Засада",
+    "siege":       "@everyone 🏰 Осада",
+    "pandora_a":   "@everyone 📦 Пандора А",
+    "pandora_b":   "@everyone 📦 Пандора Б",
 }
 # Какой вебхук использует каждая кнопка: 1 или 2
 BUTTON_WEBHOOKS = {
@@ -77,11 +77,13 @@ def get_cookie(handler, name):
                 return v
     return None
 
+revoked = set()  # отозванные при выходе токены
+
 def is_authorized(handler):
     if not PAGE_PASSWORD:
         return True
     tok = get_cookie(handler, "session")
-    return bool(tok and check_token(tok))
+    return bool(tok and check_token(tok) and tok not in revoked)
 
 # ---------- Планировщик ----------
 def scheduler_loop():
@@ -150,6 +152,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/api/login":
             return self.api_login()
+        if path == "/api/logout":
+            return self.api_logout()
         if path == "/api/send":
             return self.api_send()
         if path == "/api/cancel":
@@ -157,39 +161,30 @@ class Handler(BaseHTTPRequestHandler):
         self._json(404, {"error": "не найдено"})
 
     def api_state(self):
-        """Состояние для всех открытых страничек: отложенные + кулдауны."""
-        authed = is_authorized(self)
         now = time.time()
+        authed = is_authorized(self)
+        pend = []
         with pending_lock:
-            pend = [
-                {"key": k,
-                 "text": v["text"],
-                 "when": v["when_str"],
-                 "channel": "канал 1" if v["webhook"] == 1 else "канал 2"}
-                for k, v in sorted(pending.items(), key=lambda kv: kv[1]["send_at"])
-            ]
+            items = sorted(pending.items(), key=lambda kv: kv[1]["send_at"])
+            for key, it in items:
+                pend.append({
+                    "id": key,
+                    "text": it["text"] if authed else "",
+                    "when": it["when_str"],
+                    "channel": it["webhook"],
+                    "custom": key.startswith("custom:"),
+                })
         cds = {}
-        for k, t in list(last_sent.items()):
-            rem = int(COOLDOWN - (now - t)) + 1
-            if rem > 0:
-                cds[k] = rem
-        self._json(200, {"authed": authed, "pending": pend, "cooldowns": cds})
-
-    def api_cancel(self):
-        """Отмена запланированной отправки (только для вошедших)."""
-        if PAGE_PASSWORD and not is_authorized(self):
-            return self._json(401, {"error": "нужен вход"})
-        try:
-            length = int(self.headers.get("Content-Length", 0))
-            data = json.loads(self.rfile.read(length) or b"{}")
-        except Exception:
-            return self._json(400, {"error": "плохой запрос"})
-        key = data.get("key", "")
-        with pending_lock:
-            item = pending.pop(key, None)
-        if item is None:
-            return self._json(404, {"error": "уже отправлено или не найдено"})
-        return self._json(200, {"ok": True})
+        for key, t in last_sent.items():
+            w = int(COOLDOWN - (now - t)) + 1
+            if w > 0:
+                cds["custom" if key.startswith("custom:") else key] = w
+        self._json(200, {
+            "authed": authed,
+            "guest_mode": bool(PAGE_PASSWORD),
+            "pending": pend,
+            "cooldowns": cds,
+        })
 
     def api_login(self):
         try:
@@ -207,6 +202,31 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.end_headers()
         self.wfile.write(b'{"ok": true}')
+
+    def api_logout(self):
+        tok = get_cookie(self, "session")
+        if tok:
+            revoked.add(tok)
+        self.send_response(200)
+        self.send_header("Set-Cookie", "session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b'{"ok": true}')
+
+    def api_cancel(self):
+        if not is_authorized(self):
+            return self._json(401, {"error": "нужен вход"})
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length) or b"{}")
+        except Exception:
+            return self._json(400, {"error": "плохой запрос"})
+        key = data.get("id", "")
+        with pending_lock:
+            removed = pending.pop(key, None)
+        if not removed:
+            return self._json(404, {"error": "такой отправки уже нет"})
+        return self._json(200, {"ok": True})
 
     def api_send(self):
         authed = is_authorized(self)
@@ -249,7 +269,7 @@ class Handler(BaseHTTPRequestHandler):
         when_str = ""
         if sched_raw:
             try:
-                dt = datetime.fromisoformat(sched_raw)
+                dt = datetime.fromisoformat(sched_raw.replace("Z", "+00:00"))
                 if dt.tzinfo is None:
                     return self._json(400, {"error": "время без пояса"})
                 send_at = dt.timestamp()
@@ -288,4 +308,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     print("Listening on port", PORT)
-    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+    srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    srv.allow_reuse_address = True
+    srv.serve_forever()

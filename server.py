@@ -141,6 +141,8 @@ class Handler(BaseHTTPRequestHandler):
             self._file(os.path.join(BASE_DIR, "icon-512.png"), "image/png")
         elif path == "/api/auth":
             self._json(200, {"authed": is_authorized(self), "guest_mode": bool(PAGE_PASSWORD)})
+        elif path == "/api/state":
+            return self.api_state()
         else:
             self._json(404, {"error": "не найдено"})
 
@@ -150,7 +152,44 @@ class Handler(BaseHTTPRequestHandler):
             return self.api_login()
         if path == "/api/send":
             return self.api_send()
+        if path == "/api/cancel":
+            return self.api_cancel()
         self._json(404, {"error": "не найдено"})
+
+    def api_state(self):
+        """Состояние для всех открытых страничек: отложенные + кулдауны."""
+        authed = is_authorized(self)
+        now = time.time()
+        with pending_lock:
+            pend = [
+                {"key": k,
+                 "text": v["text"],
+                 "when": v["when_str"],
+                 "channel": "канал 1" if v["webhook"] == 1 else "канал 2"}
+                for k, v in sorted(pending.items(), key=lambda kv: kv[1]["send_at"])
+            ]
+        cds = {}
+        for k, t in list(last_sent.items()):
+            rem = int(COOLDOWN - (now - t)) + 1
+            if rem > 0:
+                cds[k] = rem
+        self._json(200, {"authed": authed, "pending": pend, "cooldowns": cds})
+
+    def api_cancel(self):
+        """Отмена запланированной отправки (только для вошедших)."""
+        if PAGE_PASSWORD and not is_authorized(self):
+            return self._json(401, {"error": "нужен вход"})
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length) or b"{}")
+        except Exception:
+            return self._json(400, {"error": "плохой запрос"})
+        key = data.get("key", "")
+        with pending_lock:
+            item = pending.pop(key, None)
+        if item is None:
+            return self._json(404, {"error": "уже отправлено или не найдено"})
+        return self._json(200, {"ok": True})
 
     def api_login(self):
         try:

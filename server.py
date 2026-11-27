@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import os, json, time, hmac, hashlib, threading, uuid
-from datetime import datetime
+import os, json, time, math, hmac, hashlib, threading, uuid
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import request as urlreq
 from urllib.parse import urlparse
@@ -18,10 +18,10 @@ COOLDOWN = 15  # секунд паузы между отправками одн�
 # Тексты кнопок живут здесь — менять их нужно только тут
 BUTTON_TEXTS = {
     "excavations": "@everyone ⛏️ Раскопки",
-    "ambush":      "@everyone 🏹 Засада",
-    "siege":       "@everyone 🏰 Осада",
-    "pandora_a":   "@everyone 📦 Пандора А",
-    "pandora_b":   "@everyone 📦 Пандора Б",
+    "ambush":      "@everyone  Засада",
+    "siege":       "@everyone  Осада",
+    "pandora_a":   "@everyone  Пандора А",
+    "pandora_b":   "@everyone  Пандора Б",
 }
 # Какой вебхук использует каждая кнопка: 1 или 2
 BUTTON_WEBHOOKS = {
@@ -38,6 +38,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 last_sent = {}          # key -> epoch отправки
 pending = {}            # key -> {'text', 'webhook', 'send_at', 'when_str'}
 pending_lock = threading.Lock()
+revoked = set()         # отозванные после «Выйти» токены
 
 def webhook_url(num):
     return WEBHOOK_1 if num == 1 else WEBHOOK_2
@@ -60,6 +61,8 @@ def make_token():
     return "%d:%s" % (exp, sig)
 
 def check_token(token):
+    if token in revoked:
+        return False
     try:
         exp_s, sig = token.split(":", 1)
         exp = int(exp_s)
@@ -77,13 +80,11 @@ def get_cookie(handler, name):
                 return v
     return None
 
-revoked = set()  # отозванные при выходе токены
-
 def is_authorized(handler):
     if not PAGE_PASSWORD:
         return True
     tok = get_cookie(handler, "session")
-    return bool(tok and check_token(tok) and tok not in revoked)
+    return bool(tok and check_token(tok))
 
 # ---------- Планировщик ----------
 def scheduler_loop():
@@ -160,32 +161,6 @@ class Handler(BaseHTTPRequestHandler):
             return self.api_cancel()
         self._json(404, {"error": "не найдено"})
 
-    def api_state(self):
-        now = time.time()
-        authed = is_authorized(self)
-        pend = []
-        with pending_lock:
-            items = sorted(pending.items(), key=lambda kv: kv[1]["send_at"])
-            for key, it in items:
-                pend.append({
-                    "id": key,
-                    "text": it["text"] if authed else "",
-                    "when": it["when_str"],
-                    "channel": it["webhook"],
-                    "custom": key.startswith("custom:"),
-                })
-        cds = {}
-        for key, t in last_sent.items():
-            w = int(COOLDOWN - (now - t)) + 1
-            if w > 0:
-                cds["custom" if key.startswith("custom:") else key] = w
-        self._json(200, {
-            "authed": authed,
-            "guest_mode": bool(PAGE_PASSWORD),
-            "pending": pend,
-            "cooldowns": cds,
-        })
-
     def api_login(self):
         try:
             length = int(self.headers.get("Content-Length", 0))
@@ -207,11 +182,39 @@ class Handler(BaseHTTPRequestHandler):
         tok = get_cookie(self, "session")
         if tok:
             revoked.add(tok)
+            if len(revoked) > 1000:
+                revoked.clear()
         self.send_response(200)
         self.send_header("Set-Cookie", "session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax")
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.end_headers()
         self.wfile.write(b'{"ok": true}')
+
+    def api_state(self):
+        authed = is_authorized(self)
+        now = time.time()
+        plist = []
+        cooldowns = {}
+        with pending_lock:
+            for key, item in pending.items():
+                plist.append({
+                    "key": key,
+                    "text": item["text"],
+                    "when_str": item["when_str"],
+                    "send_at": int(item["send_at"]),
+                    "channel": item["webhook"],
+                })
+        plist.sort(key=lambda x: x["send_at"])
+        for key, ts in list(last_sent.items()):
+            wait = COOLDOWN - (now - ts)
+            if wait > 0:
+                cooldowns[key] = int(math.ceil(wait))
+        self._json(200, {
+            "authed": authed,
+            "guest_mode": bool(PAGE_PASSWORD),
+            "pending": plist,
+            "cooldowns": cooldowns,
+        })
 
     def api_cancel(self):
         if not is_authorized(self):
@@ -221,12 +224,12 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length) or b"{}")
         except Exception:
             return self._json(400, {"error": "плохой запрос"})
-        key = data.get("id", "")
+        key = data.get("key", "")
         with pending_lock:
-            removed = pending.pop(key, None)
-        if not removed:
-            return self._json(404, {"error": "такой отправки уже нет"})
-        return self._json(200, {"ok": True})
+            if key in pending:
+                pending.pop(key)
+                return self._json(200, {"ok": True})
+        return self._json(404, {"error": "такой отправки уже нет"})
 
     def api_send(self):
         authed = is_authorized(self)
@@ -263,13 +266,15 @@ class Handler(BaseHTTPRequestHandler):
 
         now = time.time()
 
-        # Отложенная отправка?
+        # Отложенная отправка — доступна для любой кнопки
         sched_raw = (data.get("scheduled") or "").strip()
         send_at = None
         when_str = ""
         if sched_raw:
+            if sched_raw.endswith("Z"):
+                sched_raw = sched_raw[:-1] + "+00:00"
             try:
-                dt = datetime.fromisoformat(sched_raw.replace("Z", "+00:00"))
+                dt = datetime.fromisoformat(sched_raw)
                 if dt.tzinfo is None:
                     return self._json(400, {"error": "время без пояса"})
                 send_at = dt.timestamp()
@@ -284,7 +289,8 @@ class Handler(BaseHTTPRequestHandler):
             with pending_lock:
                 if key in pending:
                     return self._json(409, {"error": "такое сообщение уже запланировано на " + pending[key]["when_str"]})
-                pending[key] = {"text": text, "webhook": webhook_num, "send_at": send_at, "when_str": when_str}
+                pending[key] = {"text": text, "webhook": webhook_num, "send_at": send_at,
+                                "when_str": when_str, "button": button}
             if not webhook_url(webhook_num):
                 with pending_lock:
                     pending.pop(key, None)
@@ -304,10 +310,8 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             return self._json(502, {"error": "не удалось отправить: %s" % e})
         last_sent[key] = time.time()
-        return self._json(200, {"ok": True})
+        return self._json(200, {"ok": True, "wait": COOLDOWN})
 
 if __name__ == "__main__":
     print("Listening on port", PORT)
-    srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    srv.allow_reuse_address = True
-    srv.serve_forever()
+    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

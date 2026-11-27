@@ -1,352 +1,349 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0f1420">
 <title>BL9D 💬</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <style>
   :root{
-    --bg:#0f1420; --panel:#171e2e; --panel2:#1d2638; --line:#2a3550;
-    --text:#e8edf7; --muted:#8fa0bd; --accent:#f5b942; --ok:#3ecf8e; --err:#ff6b6b;
+    --bg:#0f1115; --card:#171a21; --card2:#1e222c; --line:#2a2f3c;
+    --text:#e8eaf0; --muted:#8b93a5; --gold:#f0b429; --green:#4cc38a; --red:#ff6b6b;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    min-height:100vh;padding:14px 14px 60px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
-  h1{font-size:1.25rem;margin:0;letter-spacing:.5px}
-  .topbtns{display:flex;gap:8px}
-  button{font:inherit;border-radius:10px;border:1px solid var(--line);cursor:pointer;
-    background:var(--panel2);color:var(--text);padding:10px 12px;transition:filter .15s, opacity .15s}
-  button:hover:not(:disabled){filter:brightness(1.15)}
-  button:disabled{opacity:.45;cursor:not-allowed}
-  .btn-primary{background:linear-gradient(135deg,#f5b942,#e09a1e);color:#1a1206;font-weight:700;border-color:transparent}
-  .btn-block{width:100%}
-  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
-  h2{font-size:.95rem;margin:0 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:.8px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
-  input,select,textarea{font:inherit;width:100%;background:#101726;color:var(--text);
-    border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
-  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
-  textarea{min-height:70px;resize:vertical}
-  .cd{font-weight:700}
-  .flash{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
-    background:#20304d;border:1px solid var(--line);color:var(--text);
-    padding:10px 16px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.5);
-    opacity:0;pointer-events:none;transition:opacity .25s;max-width:92vw;z-index:50}
-  .flash.show{opacity:1}
-  .flash.err{background:#3d1f24;border-color:var(--err)}
-  .modal{position:fixed;inset:0;background:rgba(5,8,14,.7);display:flex;
-    align-items:center;justify-content:center;padding:16px;z-index:40}
-  .modal[hidden]{display:none}
-  .modal-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    padding:18px;width:100%;max-width:340px}
-  .modal-card h2{margin-bottom:4px}
-  .pending-item{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
-    background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
-  .pending-when{color:var(--accent);font-weight:700;white-space:nowrap}
-  .pending-text{font-size:.85rem;color:var(--text);word-break:break-word}
-  .pending-ch{font-size:.75rem;color:var(--muted)}
-  .pending-del{padding:4px 10px;font-size:.8rem;flex-shrink:0}
-  .muted{color:var(--muted);font-size:.85rem}
-  .lock{opacity:.55}
-  .pwa{font-size:.8rem;color:var(--muted);text-align:center;margin-top:6px}
-  .err-note{color:var(--err);font-size:.85rem;margin-top:6px}
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       padding:16px;max-width:560px;margin:0 auto}
+  h1{font-size:1.4em;margin:.2em 0 .6em}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .top .btn{padding:8px 14px}
+  .section{background:var(--card);border:1px solid var(--line);border-radius:14px;
+           padding:14px;margin:14px 0}
+  .section h2{font-size:1.05em;margin:0 0 10px;color:var(--gold)}
+  .btn{display:block;width:100%;padding:13px 14px;margin:8px 0;border:none;border-radius:10px;
+       background:var(--card2);color:var(--text);font-size:1em;text-align:left;cursor:pointer;
+       border:1px solid var(--line);transition:opacity .15s}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn .cd{color:var(--gold);font-size:.9em}
+  .lock{opacity:.6;font-size:.85em}
+  .row{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+  .row label{color:var(--muted);font-size:.92em}
+  input[type=text],input[type=password],input[type=datetime-local],textarea,select{
+    background:var(--card2);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:10px;font-size:1em;width:100%}
+  textarea{min-height:80px;resize:vertical}
+  .go{background:var(--gold);color:#111;border:none;font-weight:600;padding:12px 18px;
+      border-radius:10px;font-size:1em;cursor:pointer;width:100%;margin-top:8px}
+  .go:disabled{opacity:.5;cursor:not-allowed}
+  .status{min-height:1.2em;font-size:.92em;margin:8px 0;color:var(--muted)}
+  .status.ok{color:var(--green)} .status.err{color:var(--red)}
+  .pend{border-top:1px solid var(--line);padding:9px 0;display:flex;
+        justify-content:space-between;gap:8px;align-items:flex-start}
+  .pend .meta{color:var(--muted);font-size:.85em}
+  .pend .txt{font-size:.95em;word-break:break-word}
+  .pend .del{background:none;border:1px solid var(--line);color:var(--red);
+             border-radius:8px;padding:4px 9px;cursor:pointer;flex-shrink:0}
+  .pend-empty{color:var(--muted);font-size:.92em}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;
+         align-items:center;justify-content:center;padding:16px;z-index:10}
+  .modal .box{background:var(--card);border:1px solid var(--line);border-radius:14px;
+              padding:18px;width:100%;max-width:340px}
+  .modal h3{margin:0 0 12px}
+  .hint{color:var(--muted);font-size:.85em;margin-top:14px;text-align:center}
+  .warn{color:var(--gold);font-size:.85em}
+  .hidden{display:none !important}
 </style>
 </head>
 <body>
-<header>
-  <h1>BL9D 💬</h1>
-  <div class="topbtns">
-    <button id="btnLoginTop">Вход 🔑</button>
-    <button id="btnLogout" hidden>Выйти</button>
-  </div>
-</header>
 
-<section>
-  <h2>⚡ Быстрые события</h2>
-  <div class="grid">
-    <button class="btn-block" data-key="excavations">⛏️ Раскопки</button>
-    <button class="btn-block lock" data-key="ambush" data-guest="1">🏹 Засада 🔒</button>
-    <button class="btn-block lock" data-key="siege" data-guest="1">🏰 Осада 🔒</button>
-    <button class="btn-block lock" data-key="pandora_a" data-guest="1">📦 Пандора А 🔒</button>
-    <button class="btn-block lock" data-key="pandora_b" data-guest="1">📦 Пандора Б 🔒</button>
-  </div>
-</section>
-
-<section>
-  <h2>✉️ Своё сообщение</h2>
-  <label for="customText">Текст объявления</label>
-  <textarea id="customText" maxlength="1800" placeholder="Например: раскопки через 10 минут, сбор у склада"></textarea>
-  <label for="customChannel">Куда</label>
-  <select id="customChannel">
-    <option value="2">Канал ивентов</option>
-    <option value="1">Канал раскопок</option>
-  </select>
-  <label for="schedTime">По расписанию (не обязательно)</label>
-  <input type="datetime-local" id="schedTime">
-  <div style="margin-top:12px">
-    <button class="btn-primary btn-block" id="btnCustom">Отправить</button>
-  </div>
-</section>
-
-<section id="pendingSec">
-  <h2>⏳ Запланированные отправки</h2>
-  <div id="pendingEmpty" class="muted">Пока ничего не запланировано.</div>
-  <div id="pendingList"></div>
-</section>
-
-<p class="pwa">📱 На телефоне: меню браузера → «Добавить на главный экран» — и страничка станет приложением с иконкой.</p>
-
-<div class="modal" id="loginModal" hidden>
-  <div class="modal-card">
-    <h2>Вход</h2>
-    <label for="pwd">Пароль</label>
-    <input type="password" id="pwd" autocomplete="current-password">
-    <div id="loginErr" class="err-note" hidden></div>
-    <div class="grid" style="margin-top:12px">
-      <button id="btnLoginOk">Войти</button>
-      <button id="btnLoginLater">Позже</button>
-    </div>
+<div class="top">
+  <h1 style="margin:0">BL9D 💬</h1>
+  <div>
+    <button class="btn" id="btn-login-top" style="width:auto;display:inline-block">Вход 🔑</button>
+    <button class="btn hidden" id="btn-logout" style="width:auto;display:inline-block">Выйти</button>
   </div>
 </div>
 
-<div class="flash" id="flash"></div>
+<div class="section" id="sec-events">
+  <h2>⚡ Быстрые события</h2>
+
+  <div class="row" style="background:var(--card2);border:1px solid var(--line);
+       border-radius:10px;padding:10px">
+    <input type="checkbox" id="sched-on" style="width:auto">
+    <label for="sched-on" style="color:var(--text)">⏰ Запланировать на:</label>
+    <input type="datetime-local" id="sched-time" style="flex:1;min-width:150px">
+  </div>
+  <div class="warn" id="sched-hint" style="margin:6px 0 2px"></div>
+
+  <button class="btn" data-btn="excavations">⛏️ Раскопки</button>
+  <button class="btn" data-btn="ambush">🏹 Засада <span class="lock">🔒</span></button>
+  <button class="btn" data-btn="siege">🏰 Осада <span class="lock">🔒</span></button>
+  <button class="btn" data-btn="pandora_a">📦 Пандора А <span class="lock">🔒</span></button>
+  <button class="btn" data-btn="pandora_b">📦 Пандора Б <span class="lock">🔒</span></button>
+</div>
+
+<div class="section">
+  <h2>✉️ Своё сообщение</h2>
+  <textarea id="custom-text" placeholder="Текст объявления (до 1800 символов)"></textarea>
+  <div class="row">
+    <label>Куда:</label>
+    <select id="custom-channel">
+      <option value="2">Канал 2</option>
+      <option value="1">Канал 1</option>
+    </select>
+  </div>
+  <div class="row">
+    <label>По расписанию:</label>
+    <input type="datetime-local" id="custom-time" style="flex:1;min-width:170px">
+  </div>
+  <button class="go" id="btn-custom">Отправить</button>
+</div>
+
+<div class="section">
+  <h2>⏳ Запланированные отправки</h2>
+  <div id="pend-list"><div class="pend-empty">Пока ничего не запланировано</div></div>
+</div>
+
+<div class="status" id="status"></div>
+
+<p class="hint">📱 На телефоне: меню браузера → «Добавить на главный экран» — и страничка станет приложением с иконкой.</p>
+
+<div class="modal hidden" id="login-modal">
+  <div class="box">
+    <h3>🔑 Вход</h3>
+    <input type="password" id="login-pass" placeholder="Пароль">
+    <button class="go" id="btn-login">Войти</button>
+    <button class="btn" id="btn-later" style="text-align:center">Позже</button>
+  </div>
+</div>
 
 <script>
 (function(){
-  "use strict";
-  var $ = function(id){ return document.getElementById(id); };
-  var authed = false, guestMode = true;
-  var timers = {}; // key -> interval
-  var cancels = {}; // id -> in-flight
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var BUTTONS = ["excavations","ambush","siege","pandora_a","pandora_b"];
+var COOLDOWN_DEFAULT = 15;
+var state = { authed:false, guest_mode:false, cooldowns:{}, stateOk:true };
 
-  // ---------- утилиты ----------
-  function flash(msg, isErr){
-    var f = $("flash");
-    f.textContent = msg;
-    f.className = "flash show" + (isErr ? " err" : "");
-    clearTimeout(flash._t);
-    flash._t = setTimeout(function(){ f.className = "flash"; }, 3500);
-  }
+function show(msg, cls){
+  var s = $("status");
+  s.textContent = msg || "";
+  s.className = "status" + (cls ? " " + cls : "");
+  if (msg) { clearTimeout(show._t); show._t = setTimeout(function(){ s.textContent=""; s.className="status"; }, 6000); }
+}
 
-  function api(path, opts){
-    return fetch(path, opts || {}).then(function(r){
-      return r.json().then(function(j){ j._code = r.status; return j; });
-    });
-  }
-
-  // ГЛАВНЫЙ ФИКС: datetime-local отдаёт время БЕЗ пояса.
-  // Достраиваем пояс из самого устройства, иначе сервер отвечает «время без пояса».
-  function isoWithTz(v){
-    if(!v) return null;
-    var d = new Date(v);
-    if (isNaN(d.getTime())) return null;
-    var off = -d.getTimezoneOffset();
-    var sign = off >= 0 ? "+" : "-";
-    var abs = Math.abs(off);
-    var pad = function(n){ return String(n).length < 2 ? "0"+n : ""+n; };
-    return v + (v.length === 16 ? ":00" : "") + sign + pad(Math.floor(abs/60)) + ":" + pad(abs%60);
-  }
-
-  // ---------- кулдауны ----------
-  function setCooldown(key, secs){
-    clearTimeoutCd(key);
-    var btn = document.querySelector('button[data-key="'+key+'"]');
-    if (btn){
-      var label = btn.getAttribute("data-label") || btn.textContent;
-      btn.setAttribute("data-label", label);
-      btn.disabled = true;
-      var left = secs;
-      var tick = function(){
-        if (left > 0){
-          btn.textContent = "⏳ " + left + "с";
-          left--;
-        } else {
-          clearTimeoutCd(key);
-          btn.textContent = btn.getAttribute("data-label");
-          btn.disabled = shouldLock(key);
-        }
-      };
-      tick();
-      timers[key] = setInterval(tick, 1000);
-    }
-  }
-  function clearTimeoutCd(key){
-    if (timers[key]){ clearInterval(timers[key]); delete timers[key]; }
-  }
-  function shouldLock(key){
-    if (key === "excavations") return false;
-    return guestMode && !authed;
-  }
-
-  function applyCooldowns(cds){
-    Object.keys(cds).forEach(function(k){ setCooldown(k, cds[k]); });
-    // кнопки без кулдауна — в исходное состояние
-    document.querySelectorAll("button[data-key]").forEach(function(b){
-      var k = b.getAttribute("data-key");
-      if (!timers[k] && !b.disabled){
-        b.textContent = b.getAttribute("data-label") || b.textContent;
-        b.disabled = shouldLock(k);
-      }
-    });
-  }
-
-  // ---------- запланированные отправки ----------
-  function esc(s){
-    var d = document.createElement("div");
-    d.textContent = s;
-    return d.innerHTML;
-  }
-  function renderPending(items){
-    var list = $("pendingList"), empty = $("pendingEmpty");
-    list.innerHTML = "";
-    if (!items.length){ empty.hidden = false; return; }
-    empty.hidden = true;
-    items.forEach(function(it){
-      var row = document.createElement("div");
-      row.className = "pending-item";
-      var body = document.createElement("div");
-      var when = document.createElement("div");
-      when.className = "pending-when";
-      when.textContent = it.when + " · к." + it.channel;
-      var txt = document.createElement("div");
-      txt.className = "pending-text";
-      txt.innerHTML = it.text ? esc(it.text) : '<span class="muted">своё сообщение</span>';
-      body.appendChild(when); body.appendChild(txt);
-      row.appendChild(body);
-      if (authed){
-        var del = document.createElement("button");
-        del.className = "pending-del";
-        del.textContent = "✕";
-        del.onclick = function(){ cancelPending(it.id, row, del); };
-        row.appendChild(del);
-      }
-      list.appendChild(row);
-    });
-  }
-
-  function cancelPending(id, row, del){
-    if (cancels[id]) return;
-    cancels[id] = true;
-    del.disabled = true;
-    api("/api/cancel", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({id: id})
-    }).then(function(j){
-      if (j.ok) flash("Отменено");
-      else flash(j.error || "Не удалось отменить", true);
-      loadState();
-    }).catch(function(){ flash("Нет связи с сервером", true); })
-    .finally(function(){ delete cancels[id]; del.disabled = false; });
-  }
-
-  // ---------- состояние ----------
-  function applyAuth(){
-    $("btnLoginTop").hidden = authed;
-    $("btnLogout").hidden = !authed;
-    document.querySelectorAll("button[data-key]").forEach(function(b){
-      var k = b.getAttribute("data-key");
-      if (k !== "excavations") b.classList.toggle("lock", !authed);
-      if (!timers[k]) b.disabled = shouldLock(k);
-    });
-  }
-
-  function loadState(){
-    return api("/api/state").then(function(j){
-      authed = !!j.authed;
-      guestMode = !!j.guest_mode;
-      applyAuth();
-      applyCooldowns(j.cooldowns || {});
-      renderPending(j.pending || []);
-    }).catch(function(){
-      // сервер недоступен или старая версия без /api/state —
-      // страничка продолжает работать, просто без окна и кулдаунов
-      $("pendingList").innerHTML = "";
-      $("pendingEmpty").hidden = false;
-      $("pendingEmpty").textContent = "Не удалось получить состояние сервера.";
-    });
-  }
-
-  // ---------- вход / выход ----------
-  function openLogin(){ $("loginModal").hidden = false; $("loginErr").hidden = true; $("pwd").value = ""; $("pwd").focus(); }
-  $("btnLoginTop").onclick = openLogin;
-  $("btnLoginLater").onclick = function(){ $("loginModal").hidden = true; };
-  $("btnLoginOk").onclick = function(){
-    var pwd = $("pwd").value;
-    api("/api/login", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({password: pwd})
-    }).then(function(j){
-      if (j.ok){
-        $("loginModal").hidden = true;
-        flash("Вы вошли");
-        loadState();
-      } else {
-        $("loginErr").textContent = j.error || "Не удалось войти";
-        $("loginErr").hidden = false;
-      }
-    }).catch(function(){ flash("Нет связи с сервером", true); });
-  };
-  $("pwd").addEventListener("keydown", function(e){ if (e.key === "Enter") $("btnLoginOk").click(); });
-
-  $("btnLogout").onclick = function(){
-    api("/api/logout", {method: "POST"}).then(function(){
-      flash("Вы вышли");
-      loadState();
-    }).catch(function(){ flash("Нет связи с сервером", true); });
-  };
-
-  // ---------- быстрые кнопки ----------
-  document.querySelectorAll("button[data-key]").forEach(function(btn){
-    btn.setAttribute("data-label", btn.textContent);
-    btn.onclick = function(){
-      if (btn.disabled) return;
-      var key = btn.getAttribute("data-key");
-      api("/api/send", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({button: key})
-      }).then(function(j){
-        if (j.ok){ flash("Отправлено ✔"); loadState(); }
-        else if (j._code === 429){ setCooldown(key, j.wait || 15); flash("Слишком часто", true); }
-        else if (j._code === 401){ openLogin(); flash(j.error || "Нужен вход", true); }
-        else flash(j.error || "Ошибка отправки", true);
-      }).catch(function(){ flash("Нет связи с сервером", true); });
-    };
+function post(path, body){
+  return fetch(path, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(body || {})
+  }).then(function(r){
+    return r.json().then(function(data){ return {status:r.status, data:data}; });
   });
+}
 
-  // ---------- своё сообщение ----------
-  $("btnCustom").onclick = function(){
-    var text = $("customText").value.trim();
-    if (!text){ flash("Введите текст сообщения", true); return; }
-    var sched = isoWithTz($("schedTime").value);
-    var body = {button: "custom", text: text, channel: parseInt($("customChannel").value, 10)};
-    if (sched) body.scheduled = sched;
-    api("/api/send", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(body)
-    }).then(function(j){
-      if (j.ok){
-        flash(sched ? ("Запланировано на " + (j.scheduled || "")) : "Отправлено ✔");
-        if (!sched){ $("customText").value = ""; }
-        loadState();
+/* ---------- кулдауны на кнопках ---------- */
+var cdDeadlines = {}; // key -> epoch(ms)
+
+function applyCooldown(key, sec){
+  if (!sec || sec < 1) sec = COOLDOWN_DEFAULT;
+  cdDeadlines[key] = Date.now() + sec * 1000;
+  renderButtons();
+}
+
+function cooldownLeft(key){
+  var d = cdDeadlines[key];
+  if (!d) return 0;
+  var left = Math.ceil((d - Date.now()) / 1000);
+  if (left <= 0) { delete cdDeadlines[key]; return 0; }
+  return left;
+}
+
+function renderButtons(){
+  BUTTONS.forEach(function(id){
+    var btn = document.querySelector('[data-btn="'+id+'"]');
+    if (!btn) return;
+    var locked = state.guest_mode && !state.authed && id !== "excavations";
+    var left = cooldownLeft(id);
+    btn.disabled = locked || left > 0;
+    var base = btn.getAttribute("data-label") || btn.textContent.replace(/\s*⏳.*$/,"").trim();
+    btn.setAttribute("data-label", base);
+    btn.textContent = base + (left > 0 ? "  ⏳ " + left + "с" : "");
+    var lock = btn.querySelector(".lock") || null;
+    // lock уже внутри base-текста; управлять нечем — просто текст
+  });
+  // замки управляются атрибутом: пересоберём текст по состоянию
+  document.querySelectorAll(".btn[data-btn]").forEach(function(btn){
+    var id = btn.getAttribute("data-btn");
+    var base = btn.getAttribute("data-label") || "";
+    if (base) {
+      var locked = state.guest_mode && !state.authed && id !== "excavations";
+      var label = base.replace(/ ?🔒$/,"");
+      btn.setAttribute("data-label", label + (locked ? " 🔒" : ""));
+      btn.textContent = (label + (locked ? " 🔒" : "")) + (cooldownLeft(id) > 0 ? "  ⏳ " + cooldownLeft(id) + "с" : "");
+    }
+  });
+}
+setInterval(renderButtons, 1000);
+
+/* ---------- время для планирования: всегда с поясом ---------- */
+function isoFromInput(value){
+  if (!value) return null;
+  var d = new Date(value);           // datetime-local читается в местном поясе
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();            // отдаём UTC — сервер принимает Z-формат
+}
+
+/* ---------- отправка кнопки (сразу или по расписанию) ---------- */
+function sendEvent(id){
+  var body = { button: id };
+  if ($("sched-on").checked) {
+    var iso = isoFromInput($("sched-time").value);
+    if (!iso) { show("❌ Укажите время для запланированной отправки", "err"); return; }
+    body.scheduled = iso;
+  }
+  post("/api/send", body).then(function(r){
+    if (r.status === 429) {
+      applyCooldown(id, r.data.wait);
+      show("⏳ " + r.data.error + (r.data.wait ? " (ещё " + r.data.wait + " с)" : ""), "err");
+    } else if (r.status === 200) {
+      if (r.data.scheduled) {
+        show("⏰ Запланировано на " + r.data.scheduled, "ok");
+        $("sched-on").checked = false;
+        $("sched-hint").textContent = "";
+      } else {
+        applyCooldown(id, r.data.wait || COOLDOWN_DEFAULT);
+        show("✅ Отправлено", "ok");
       }
-      else if (j._code === 429){ setCooldown("custom", j.wait || 15); flash("Слишком часто", true); }
-      else if (j._code === 401){ openLogin(); flash(j.error || "Нужен вход", true); }
-      else flash(j.error || "Ошибка отправки", true);
-    }).catch(function(){ flash("Нет связи с сервером", true); });
-  };
+      refreshState();
+    } else {
+      show("❌ " + (r.data.error || "ошибка"), "err");
+      if (r.status === 401) openLogin();
+    }
+  }).catch(function(){ show("❌ Сервер недоступен", "err"); });
+}
 
-  // ---------- старт ----------
-  loadState();
-  setInterval(loadState, 15000);
+/* ---------- своё сообщение ---------- */
+$("btn-custom").addEventListener("click", function(){
+  var text = $("custom-text").value.trim();
+  var body = { button:"custom", text:text, channel: parseInt($("custom-channel").value, 10) };
+  var iso = isoFromInput($("custom-time").value);
+  if (iso) body.scheduled = iso;
+  post("/api/send", body).then(function(r){
+    if (r.status === 429) {
+      applyCooldown("custom:"+text, r.data.wait);
+      show("⏳ " + r.data.error, "err");
+    } else if (r.status === 200) {
+      if (r.data.scheduled) show("⏰ Запланировано на " + r.data.scheduled, "ok");
+      else { show("✅ Отправлено", "ok"); $("custom-text").value = ""; }
+      refreshState();
+    } else {
+      show("❌ " + (r.data.error || "ошибка"), "err");
+      if (r.status === 401) openLogin();
+    }
+  }).catch(function(){ show("❌ Сервер недоступен", "err"); });
+});
+
+/* ---------- состояние: кулдауны + список запланированных ---------- */
+function renderPending(){
+  var box = $("pend-list");
+  if (!state.pending || !state.pending.length) {
+    box.innerHTML = '<div class="pend-empty">Пока ничего не запланировано</div>';
+    return;
+  }
+  box.innerHTML = "";
+  state.pending.forEach(function(p){
+    var row = document.createElement("div");
+    row.className = "pend";
+    var chan = p.channel === 1 ? "Канал 1" : "Канал 2";
+    var left = document.createElement("div");
+    left.innerHTML = '<div class="meta">🕐 ' + p.when_str + " · " + chan + "</div>" +
+                     '<div class="txt"></div>';
+    left.querySelector(".txt").textContent = p.text;
+    row.appendChild(left);
+    if (state.authed) {
+      var del = document.createElement("button");
+      del.className = "del"; del.textContent = "✕";
+      del.addEventListener("click", function(){
+        post("/api/cancel", { key: p.key }).then(function(r){
+          if (r.status === 200) { show("Отменено", "ok"); refreshState(); }
+          else show("❌ " + (r.data.error || "ошибка"), "err");
+        });
+      });
+      row.appendChild(del);
+    }
+    box.appendChild(row);
+  });
+}
+
+function refreshState(){
+  return fetch("/api/state").then(function(r){ return r.json(); }).then(function(data){
+    state.authed = !!data.authed;
+    state.guest_mode = !!data.guest_mode;
+    state.pending = data.pending || [];
+    if (data.cooldowns) {
+      Object.keys(data.cooldowns).forEach(function(key){
+        applyCooldown(key, data.cooldowns[key]);
+      });
+    }
+    state.stateOk = true;
+    $("sched-hint").textContent = "";
+    renderButtons();
+    renderPending();
+    updateAuthUI();
+  }).catch(function(){
+    if (state.stateOk) {
+      state.stateOk = false;
+      $("sched-hint").textContent = "⚠ Не удалось получить состояние сервера — запланированные не видны";
+    }
+  });
+}
+setInterval(refreshState, 15000);
+
+/* ---------- вход/выход ---------- */
+function updateAuthUI(){
+  $("btn-login-top").classList.toggle("hidden", state.authed || !state.guest_mode);
+  $("btn-logout").classList.toggle("hidden", !state.authed);
+  renderButtons();
+}
+
+function openLogin(){ $("login-modal").classList.remove("hidden"); $("login-pass").focus(); }
+$("btn-login-top").addEventListener("click", openLogin);
+$("btn-later").addEventListener("click", function(){ $("login-modal").classList.add("hidden"); });
+$("btn-login").addEventListener("click", function(){
+  post("/api/login", { password: $("login-pass").value }).then(function(r){
+    if (r.status === 200) {
+      $("login-modal").classList.add("hidden");
+      $("login-pass").value = "";
+      show("✅ Вход выполнен", "ok");
+      refreshState();
+    } else show("❌ " + (r.data.error || "ошибка входа"), "err");
+  });
+});
+$("btn-logout").addEventListener("click", function(){
+  post("/api/logout", {}).then(function(){
+    show("Вы вышли", "ok");
+    refreshState();
+  });
+});
+
+/* ---------- клики по кнопкам событий ---------- */
+document.querySelectorAll(".btn[data-btn]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var id = btn.getAttribute("data-btn");
+    if (state.guest_mode && !state.authed && id !== "excavations") { openLogin(); return; }
+    if (cooldownLeft(id) > 0) return;
+    sendEvent(id);
+  });
+});
+
+/* подсказка у переключателя */
+$("sched-on").addEventListener("change", function(){
+  $("sched-hint").textContent = this.checked && !$("sched-time").value
+    ? "Выберите дату и время — после этого клик по кнопке запланирует её" : "";
+});
+
+refreshState();
 })();
 </script>
 </body>
